@@ -73,6 +73,36 @@ hooks-uninstall: ## Uninstall pre-commit git hooks
 	. .venv/bin/activate && pre-commit uninstall
 	@echo "$(GREEN)✓ Git hooks uninstalled$(NC)"
 
+quality: ## Run all quality checks (format, lint, test, coverage)
+	@echo "$(BLUE)Running all quality checks...$(NC)"
+	@echo "$(YELLOW)1/5 Formatting code...$(NC)"
+	. .venv/bin/activate && black packages/ tests/
+	. .venv/bin/activate && isort packages/ tests/
+	@echo "$(YELLOW)2/5 Running linters...$(NC)"
+	. .venv/bin/activate && ruff check packages/ tests/ --fix || true
+	. .venv/bin/activate && flake8 packages/ || true
+	@echo "$(YELLOW)3/5 Type checking...$(NC)"
+	. .venv/bin/activate && mypy packages/ || true
+	@echo "$(YELLOW)4/5 Security scan...$(NC)"
+	. .venv/bin/activate && bandit -r packages/ -c pyproject.toml || true
+	@echo "$(YELLOW)5/5 Running tests with coverage...$(NC)"
+	. .venv/bin/activate && pytest --cov=packages --cov-report=term --cov-report=html
+	@echo "$(GREEN)✓ All quality checks complete!$(NC)"
+	@echo "$(BLUE)Coverage report: htmlcov/index.html$(NC)"
+
+quality-check: ## Check code quality without fixing (for CI)
+	@echo "$(BLUE)Checking code quality...$(NC)"
+	. .venv/bin/activate && black --check packages/ tests/
+	. .venv/bin/activate && isort --check-only packages/ tests/
+	. .venv/bin/activate && ruff check packages/ tests/
+	. .venv/bin/activate && mypy packages/
+	. .venv/bin/activate && pytest --cov=packages --cov-fail-under=80
+
+security: ## Run security checks
+	@echo "$(BLUE)Running security checks...$(NC)"
+	. .venv/bin/activate && bandit -r packages/ -c pyproject.toml
+	@echo "$(GREEN)✓ Security scan complete$(NC)"
+
 api: ## Start FastAPI development server
 	@echo "$(BLUE)Starting FastAPI server...$(NC)"
 	. .venv/bin/activate && uvicorn app.main:app --reload

@@ -69,13 +69,42 @@ repos:
         additional_dependencies: ['bandit[toml]']
         exclude: ^(tests/|\.epsilon/)
 
-  # Run tests before push (optional, can be slow)
-  # Uncomment if you want to run tests on every commit
-  # - repo: local
-  #   hooks:
-  #     - id: pytest
-  #       name: pytest
-  #       entry: bash -c 'source .venv/bin/activate && pytest tests/unit/ -v'
-  #       language: system
-  #       pass_filenames: false
-  #       stages: [push]
+  # Docstring checks
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: ['--convention=google', '--add-ignore=D100,D104,D105,D107']
+        exclude: ^(tests/|scripts/|\.epsilon/)
+
+  # Check for code complexity
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: ['--max-complexity=10', '--max-line-length=100', '--extend-ignore=E203,W503']
+        exclude: ^(tests/|\.epsilon/)
+        additional_dependencies:
+          - flake8-docstrings
+          - flake8-bugbear
+          - flake8-comprehensions
+          - flake8-simplify
+
+  # Local hooks for tests and coverage
+  - repo: local
+    hooks:
+      # Fast unit tests on commit
+      - id: pytest-quick
+        name: pytest (quick - unit tests only)
+        entry: bash -c 'source .venv/bin/activate && pytest tests/unit/ -v --tb=short -x'
+        language: system
+        pass_filenames: false
+        stages: [commit]
+
+      # Full test suite with coverage on push
+      - id: pytest-coverage
+        name: pytest with coverage
+        entry: bash -c 'source .venv/bin/activate && pytest tests/unit/ --cov=packages --cov-report=term --cov-fail-under=80'
+        language: system
+        pass_filenames: false
+        stages: [push]
