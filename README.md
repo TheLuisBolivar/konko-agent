@@ -4,7 +4,11 @@ A production-ready, configurable conversational agent built with LangChain, Lang
 
 ## Overview
 
-This project implements a conversational agent that:
+This project implements a conversational agent with **dual interfaces**:
+- **FastAPI REST API + WebSockets** for production use
+- **Interactive CLI** for development and testing
+
+The agent:
 - Collects user information through natural conversation
 - Handles corrections and interruptions gracefully
 - Escalates to human agents when appropriate
@@ -12,16 +16,17 @@ This project implements a conversational agent that:
 
 ## Features
 
-- Sequential field collection with validation
-- Natural language understanding via LLM
-- Correction handling ("No, my email is...")
-- Off-topic redirection
-- Multiple escalation policies (keyword, timeout, sentiment, LLM intent)
-- Configurable personality (tone, style, formality, emojis)
-- Persistent state with Redis
-- LangSmith observability
-- Event-driven architecture
-- Comprehensive test suite
+### Core Features
+- ✅ **FastAPI REST API** with Swagger documentation
+- ✅ **WebSocket support** for real-time conversations
+- ✅ **Interactive CLI** for quick testing
+- ✅ Sequential field collection with validation
+- ✅ Natural language understanding via LLM
+- ✅ Correction handling ("No, my email is...")
+- ✅ Multiple escalation policies (keyword, timeout)
+- ✅ Configurable personality (tone, style, formality, emojis)
+- ✅ Docker + Docker Compose ready
+- ✅ Comprehensive test suite
 
 ## Requirements
 
@@ -60,9 +65,47 @@ cp .env.example .env
 
 ## Quick Start
 
-Coming soon! Run the agent with:
+### Option 1: FastAPI Server (Recommended)
+
+1. Start the API server:
+```bash
+source .venv/bin/activate
+uvicorn app.main:app --reload
+```
+
+2. Access the API:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+- Health check: http://localhost:8000/health
+
+3. Start a conversation via REST:
+```bash
+# Start new conversation
+curl -X POST http://localhost:8000/api/v1/conversations
+
+# Send a message
+curl -X POST http://localhost:8000/api/v1/conversations/{session_id}/messages \
+  -H "Content-Type: application/json" \
+  -d '{"message": "My name is John Doe"}'
+```
+
+4. Or use WebSocket for real-time chat:
+```javascript
+// Connect to WebSocket
+ws://localhost:8000/api/v1/ws/{session_id}
+```
+
+### Option 2: CLI (For testing)
+
 ```bash
 python cli.py examples/basic_agent.yaml
+```
+
+### Option 3: Docker Compose
+
+```bash
+docker-compose up --build
+# API available at http://localhost:8000
 ```
 
 ## Development
