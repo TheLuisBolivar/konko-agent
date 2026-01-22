@@ -226,3 +226,4 @@ docker-data/
 # IDE specific
 .vscode/
 .idea/
+.DS_Store
