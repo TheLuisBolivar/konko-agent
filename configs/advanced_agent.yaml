@@ -19,6 +19,15 @@ personality:
     - "🤔"
     - "😊"
 
+# LLM Provider configuration with Konko
+llm:
+  provider: konko             # Using Konko AI for this example
+  model_name: meta-llama/Llama-2-13b-chat-hf
+  temperature: 0.8            # Slightly higher for more creative responses
+  max_tokens: 1000            # Limit response length
+  api_key_env_var: KONKO_API_KEY
+  base_url: https://api.konko.ai/v1  # Konko API endpoint
+
 # Warm, friendly greeting
 greeting: "Hey there! 👋 I'm so excited to chat with you today! Let's get started by collecting a few details."
 
