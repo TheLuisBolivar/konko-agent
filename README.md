@@ -37,14 +37,25 @@ git clone <repository-url>
 cd konko-agent
 ```
 
-2. Install dependencies:
+2. Create and activate virtual environment:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -e ".[dev]"
 ```
 
-3. Set up environment variables:
+4. Set up environment variables:
 ```bash
-export OPENAI_API_KEY="your-openai-api-key"
+# Copy the example env file
+cp .env.example .env
+
+# Edit .env and add your API keys
+# Required: OPENAI_API_KEY
+# Optional: LANGCHAIN_API_KEY for LangSmith tracing
 ```
 
 ## Quick Start
