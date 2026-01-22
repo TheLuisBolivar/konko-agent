@@ -1,0 +1,18 @@
+# Code Owners for Konko Agent
+# These owners will be automatically requested for review when someone opens a pull request.
+
+# Global owner - requires approval for all changes
+* @TheLuisBolivar
+
+# Core packages - require explicit approval
+/packages/ @TheLuisBolivar
+
+# Configuration and infrastructure
+/.github/ @TheLuisBolivar
+/docker-compose.yml @TheLuisBolivar
+/Dockerfile @TheLuisBolivar
+
+# Critical files
+/pyproject.toml @TheLuisBolivar
+/README.md @TheLuisBolivar
+/.env.example @TheLuisBolivar

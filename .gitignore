@@ -205,3 +205,25 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Konko Agent Project Specific
+# Environment variables (use .env.example as template)
+.env
+.env.local
+
+# Virtual environment
+.venv/
+venv/
+
+# Epsilon plugin state and memory
+.epsilon/
+
+# Docker volumes and data
+docker-data/
+*.db-shm
+*.db-wal
+
+# IDE specific
+.vscode/
+.idea/
+.DS_Store
