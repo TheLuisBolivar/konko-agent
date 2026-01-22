@@ -1,0 +1,111 @@
+# Advanced Konko AI Agent Configuration
+# This example demonstrates more complex configuration options
+
+# Agent personality with friendly, emoji-enabled style
+personality:
+  tone: friendly
+  style: verbose and empathetic
+  formality: informal
+  emoji_usage: true
+  emoji_list:
+    - "👋"
+    - "✅"
+    - "❌"
+    - "📧"
+    - "📱"
+    - "💼"
+    - "🎯"
+    - "⚠️"
+    - "🤔"
+    - "😊"
+
+# Warm, friendly greeting
+greeting: "Hey there! 👋 I'm so excited to chat with you today! Let's get started by collecting a few details."
+
+# Comprehensive field collection
+fields:
+  - name: first_name
+    field_type: text
+    required: true
+    prompt_hint: "What's your first name?"
+
+  - name: last_name
+    field_type: text
+    required: true
+    prompt_hint: "And your last name?"
+
+  - name: email
+    field_type: email
+    required: true
+    validation_pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    prompt_hint: "What email address should I use to reach you?"
+
+  - name: phone_number
+    field_type: phone
+    required: false
+    prompt_hint: "Do you have a phone number you'd like to share? (Optional)"
+
+  - name: company_website
+    field_type: url
+    required: false
+    prompt_hint: "If you have a company website, what's the URL?"
+
+  - name: preferred_contact_date
+    field_type: date
+    required: false
+    prompt_hint: "When would be the best time for us to contact you?"
+
+  - name: number_of_employees
+    field_type: number
+    required: false
+    prompt_hint: "How many employees does your company have? (Optional)"
+
+# Multiple escalation policies with different triggers
+escalation_policies:
+  # Keyword-based escalation
+  - enabled: true
+    reason: "User requested human agent"
+    policy_type: keyword
+    config:
+      keywords:
+        - "human"
+        - "agent"
+        - "representative"
+        - "person"
+        - "help"
+        - "speak to someone"
+        - "talk to someone"
+
+  # Timeout-based escalation
+  - enabled: true
+    reason: "Conversation exceeded maximum duration"
+    policy_type: timeout
+    config:
+      max_duration_seconds: 900  # 15 minutes
+
+  # Sentiment-based escalation
+  - enabled: true
+    reason: "User expressed frustration or negative sentiment"
+    policy_type: sentiment
+    config:
+      sentiment_threshold: -0.5  # Negative sentiment threshold
+      consecutive_negative_responses: 2
+
+  # LLM intent-based escalation
+  - enabled: true
+    reason: "LLM detected complex request requiring human assistance"
+    policy_type: llm_intent
+    config:
+      confidence_threshold: 0.8
+      intents_to_escalate:
+        - "complex_technical_issue"
+        - "pricing_negotiation"
+        - "custom_enterprise_request"
+
+  # Completion-based escalation
+  - enabled: true
+    reason: "All information collected successfully"
+    policy_type: completion
+    config:
+      action: "transfer_to_sales_team"
+      include_transcript: true
