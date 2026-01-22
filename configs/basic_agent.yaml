@@ -1,0 +1,54 @@
+# Basic Konko AI Agent Configuration
+# This is a minimal example showing how to configure a conversational agent
+
+# Agent personality and communication style
+personality:
+  tone: professional          # Options: friendly, professional, casual, empathetic
+  style: concise             # Communication style description
+  formality: neutral         # Options: formal, neutral, informal
+  emoji_usage: false         # Whether to use emojis in responses
+  emoji_list:
+    - "👋"
+    - "✅"
+    - "📧"
+    - "📱"
+    - "⚠️"
+
+# Initial greeting message
+greeting: "Hello! I'm here to help collect some information from you today."
+
+# Fields to collect from the user
+fields:
+  - name: full_name
+    field_type: text
+    required: true
+    prompt_hint: "What's your full name?"
+
+  - name: email
+    field_type: email
+    required: true
+    validation_pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    prompt_hint: "What's your email address?"
+
+  - name: phone_number
+    field_type: phone
+    required: false
+    prompt_hint: "What's your phone number? (Optional)"
+
+# Escalation policies (optional)
+escalation_policies:
+  - enabled: true
+    reason: "User explicitly requested human assistance"
+    policy_type: keyword
+    config:
+      keywords:
+        - "human"
+        - "agent"
+        - "help"
+        - "representative"
+
+  - enabled: true
+    reason: "Conversation took too long"
+    policy_type: timeout
+    config:
+      max_duration_seconds: 600  # 10 minutes

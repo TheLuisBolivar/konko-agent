@@ -1,4 +1,4 @@
-.PHONY: help setup verify test progress clean format lint
+.PHONY: help setup verify test progress clean format lint hooks
 
 # Colors
 BLUE := \033[0;34m
@@ -11,11 +11,12 @@ help: ## Show this help message
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
 
-setup: ## Initial setup (create venv, install deps)
+setup: ## Initial setup (create venv, install deps, git hooks)
 	@echo "$(BLUE)Setting up project...$(NC)"
 	python3 -m venv .venv
 	. .venv/bin/activate && pip install --upgrade pip setuptools wheel
 	. .venv/bin/activate && pip install -e ".[dev]"
+	. .venv/bin/activate && pre-commit install
 	@echo "$(GREEN)✓ Setup complete!$(NC)"
 	@echo "Run 'source .venv/bin/activate' to activate virtual environment"
 
@@ -53,6 +54,54 @@ lint: ## Lint code with ruff and mypy
 	@echo "$(BLUE)Linting code...$(NC)"
 	. .venv/bin/activate && ruff check packages/ tests/ || true
 	. .venv/bin/activate && mypy packages/ || true
+
+hooks-install: ## Install pre-commit git hooks
+	@echo "$(BLUE)Installing git hooks...$(NC)"
+	. .venv/bin/activate && pre-commit install
+	@echo "$(GREEN)✓ Git hooks installed$(NC)"
+
+hooks-run: ## Run pre-commit on all files
+	@echo "$(BLUE)Running pre-commit on all files...$(NC)"
+	. .venv/bin/activate && pre-commit run --all-files
+
+hooks-update: ## Update pre-commit hooks
+	@echo "$(BLUE)Updating pre-commit hooks...$(NC)"
+	. .venv/bin/activate && pre-commit autoupdate
+
+hooks-uninstall: ## Uninstall pre-commit git hooks
+	@echo "$(YELLOW)Uninstalling git hooks...$(NC)"
+	. .venv/bin/activate && pre-commit uninstall
+	@echo "$(GREEN)✓ Git hooks uninstalled$(NC)"
+
+quality: ## Run all quality checks (format, lint, test, coverage)
+	@echo "$(BLUE)Running all quality checks...$(NC)"
+	@echo "$(YELLOW)1/5 Formatting code...$(NC)"
+	. .venv/bin/activate && black packages/ tests/
+	. .venv/bin/activate && isort packages/ tests/
+	@echo "$(YELLOW)2/5 Running linters...$(NC)"
+	. .venv/bin/activate && ruff check packages/ tests/ --fix || true
+	. .venv/bin/activate && flake8 packages/ || true
+	@echo "$(YELLOW)3/5 Type checking...$(NC)"
+	. .venv/bin/activate && mypy packages/ || true
+	@echo "$(YELLOW)4/5 Security scan...$(NC)"
+	. .venv/bin/activate && bandit -r packages/ -c pyproject.toml || true
+	@echo "$(YELLOW)5/5 Running tests with coverage...$(NC)"
+	. .venv/bin/activate && pytest --cov=packages --cov-report=term --cov-report=html
+	@echo "$(GREEN)✓ All quality checks complete!$(NC)"
+	@echo "$(BLUE)Coverage report: htmlcov/index.html$(NC)"
+
+quality-check: ## Check code quality without fixing (for CI)
+	@echo "$(BLUE)Checking code quality...$(NC)"
+	. .venv/bin/activate && black --check packages/ tests/
+	. .venv/bin/activate && isort --check-only packages/ tests/
+	. .venv/bin/activate && ruff check packages/ tests/
+	. .venv/bin/activate && mypy packages/
+	. .venv/bin/activate && pytest --cov=packages --cov-fail-under=80
+
+security: ## Run security checks
+	@echo "$(BLUE)Running security checks...$(NC)"
+	. .venv/bin/activate && bandit -r packages/ -c pyproject.toml
+	@echo "$(GREEN)✓ Security scan complete$(NC)"
 
 api: ## Start FastAPI development server
 	@echo "$(BLUE)Starting FastAPI server...$(NC)"

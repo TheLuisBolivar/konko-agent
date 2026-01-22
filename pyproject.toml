@@ -38,6 +38,15 @@ dev = [
     "black>=23.0.0",
     "isort>=5.12.0",
     "pre-commit>=3.5.0",
+    "bandit[toml]>=1.7.0",
+    "types-PyYAML>=6.0.0",
+    "types-redis>=4.6.0",
+    "pydocstyle>=6.3.0",
+    "flake8>=7.0.0",
+    "flake8-docstrings>=1.7.0",
+    "flake8-bugbear>=23.0.0",
+    "flake8-comprehensions>=3.14.0",
+    "flake8-simplify>=0.21.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -70,3 +79,38 @@ line_length = 100
 line-length = 100
 target-version = "py310"
 select = ["E", "F", "I", "N", "W"]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", ".epsilon"]
+skips = ["B101"]  # Skip assert_used check (needed for tests)
+
+[tool.coverage.run]
+source = ["packages"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.pydocstyle]
+convention = "google"
+add_ignore = ["D100", "D104", "D105", "D107"]
+
+[tool.flake8]
+max-complexity = 10
+max-line-length = 100
+extend-ignore = ["E203", "W503"]
+exclude = [".venv", ".epsilon", "tests"]
