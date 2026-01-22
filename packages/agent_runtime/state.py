@@ -99,9 +99,7 @@ class ConversationState(BaseModel):
     updated_at: datetime = Field(
         default_factory=datetime.utcnow, description="Last update timestamp"
     )
-    ended_at: Optional[datetime] = Field(
-        default=None, description="When the conversation ended"
-    )
+    ended_at: Optional[datetime] = Field(default=None, description="When the conversation ended")
 
     # Additional metadata
     metadata: Dict[str, Any] = Field(

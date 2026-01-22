@@ -1,4 +1,4 @@
-.PHONY: help setup verify test progress clean format lint
+.PHONY: help setup verify test progress clean format lint hooks
 
 # Colors
 BLUE := \033[0;34m
@@ -11,11 +11,12 @@ help: ## Show this help message
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
 
-setup: ## Initial setup (create venv, install deps)
+setup: ## Initial setup (create venv, install deps, git hooks)
 	@echo "$(BLUE)Setting up project...$(NC)"
 	python3 -m venv .venv
 	. .venv/bin/activate && pip install --upgrade pip setuptools wheel
 	. .venv/bin/activate && pip install -e ".[dev]"
+	. .venv/bin/activate && pre-commit install
 	@echo "$(GREEN)✓ Setup complete!$(NC)"
 	@echo "Run 'source .venv/bin/activate' to activate virtual environment"
 
@@ -53,6 +54,24 @@ lint: ## Lint code with ruff and mypy
 	@echo "$(BLUE)Linting code...$(NC)"
 	. .venv/bin/activate && ruff check packages/ tests/ || true
 	. .venv/bin/activate && mypy packages/ || true
+
+hooks-install: ## Install pre-commit git hooks
+	@echo "$(BLUE)Installing git hooks...$(NC)"
+	. .venv/bin/activate && pre-commit install
+	@echo "$(GREEN)✓ Git hooks installed$(NC)"
+
+hooks-run: ## Run pre-commit on all files
+	@echo "$(BLUE)Running pre-commit on all files...$(NC)"
+	. .venv/bin/activate && pre-commit run --all-files
+
+hooks-update: ## Update pre-commit hooks
+	@echo "$(BLUE)Updating pre-commit hooks...$(NC)"
+	. .venv/bin/activate && pre-commit autoupdate
+
+hooks-uninstall: ## Uninstall pre-commit git hooks
+	@echo "$(YELLOW)Uninstalling git hooks...$(NC)"
+	. .venv/bin/activate && pre-commit uninstall
+	@echo "$(GREEN)✓ Git hooks uninstalled$(NC)"
 
 api: ## Start FastAPI development server
 	@echo "$(BLUE)Starting FastAPI server...$(NC)"

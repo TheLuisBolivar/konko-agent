@@ -1,12 +1,9 @@
 """Tests for configuration loader."""
 
-import tempfile
-from pathlib import Path
 
 import pytest
-
 from agent_config import ConfigurationError, load_config_from_dict, load_config_from_yaml
-from agent_config.schemas import AgentConfig, FieldConfig, Tone
+from agent_config.schemas import AgentConfig, Tone
 
 
 class TestLoadConfigFromYaml:
@@ -168,9 +165,7 @@ class TestLoadConfigFromDict:
 
     def test_load_minimal_dict(self):
         """Test loading minimal valid configuration."""
-        config_dict = {
-            "fields": [{"name": "name"}]  # Only required field
-        }
+        config_dict = {"fields": [{"name": "name"}]}  # Only required field
 
         config = load_config_from_dict(config_dict)
 
@@ -201,9 +196,7 @@ class TestLoadConfigFromDict:
 
     def test_invalid_field_type(self):
         """Test that ConfigurationError is raised for invalid field type."""
-        config_dict = {
-            "fields": [{"name": "custom", "field_type": "invalid_type"}]
-        }
+        config_dict = {"fields": [{"name": "custom", "field_type": "invalid_type"}]}
 
         with pytest.raises(ConfigurationError) as exc_info:
             load_config_from_dict(config_dict)

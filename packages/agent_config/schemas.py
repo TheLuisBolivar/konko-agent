@@ -93,9 +93,7 @@ class FieldConfig(BaseModel):
 
         name = v.strip()
         if not name.replace("_", "").isalnum():
-            raise ValueError(
-                "Field name must contain only alphanumeric characters and underscores"
-            )
+            raise ValueError("Field name must contain only alphanumeric characters and underscores")
 
         return name
 
@@ -105,9 +103,7 @@ class FieldConfig(BaseModel):
         """Validate field type is supported."""
         supported_types = {"text", "email", "phone", "url", "number", "date"}
         if v not in supported_types:
-            raise ValueError(
-                f"Field type '{v}' not supported. Must be one of: {supported_types}"
-            )
+            raise ValueError(f"Field type '{v}' not supported. Must be one of: {supported_types}")
         return v
 
 
@@ -145,9 +141,7 @@ class EscalationPolicy(BaseModel):
         """Validate policy type is supported."""
         supported_types = {"keyword", "timeout", "sentiment", "llm_intent", "completion"}
         if v not in supported_types:
-            raise ValueError(
-                f"Policy type '{v}' not supported. Must be one of: {supported_types}"
-            )
+            raise ValueError(f"Policy type '{v}' not supported. Must be one of: {supported_types}")
         return v
 
 

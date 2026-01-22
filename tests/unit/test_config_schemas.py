@@ -1,8 +1,6 @@
 """Tests for configuration schemas."""
 
 import pytest
-from pydantic import ValidationError
-
 from agent_config.schemas import (
     AgentConfig,
     AgentPersonality,
@@ -11,6 +9,7 @@ from agent_config.schemas import (
     Formality,
     Tone,
 )
+from pydantic import ValidationError
 
 
 class TestAgentPersonality:
@@ -147,9 +146,7 @@ class TestEscalationPolicy:
 
     def test_disabled_escalation_policy(self):
         """Test disabled escalation policy."""
-        policy = EscalationPolicy(
-            enabled=False, reason="Test policy", policy_type="keyword"
-        )
+        policy = EscalationPolicy(enabled=False, reason="Test policy", policy_type="keyword")
 
         assert policy.enabled is False
 
@@ -163,9 +160,7 @@ class TestEscalationPolicy:
     def test_unsupported_policy_type_fails(self):
         """Test that unsupported policy type raises validation error."""
         with pytest.raises(ValidationError) as exc_info:
-            EscalationPolicy(
-                enabled=True, reason="Test", policy_type="invalid_type"
-            )
+            EscalationPolicy(enabled=True, reason="Test", policy_type="invalid_type")
 
         assert "not supported" in str(exc_info.value)
 

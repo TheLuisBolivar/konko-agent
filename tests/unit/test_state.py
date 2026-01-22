@@ -2,15 +2,7 @@
 
 from datetime import datetime, timedelta
 
-import pytest
-
-from agent_runtime import (
-    ConversationState,
-    ConversationStatus,
-    FieldValue,
-    Message,
-    MessageRole,
-)
+from agent_runtime import ConversationState, ConversationStatus, FieldValue, Message, MessageRole
 
 
 class TestMessage:
@@ -29,9 +21,7 @@ class TestMessage:
     def test_message_with_metadata(self):
         """Test creating a message with metadata."""
         metadata = {"intent": "greeting", "confidence": 0.95}
-        message = Message(
-            role=MessageRole.AGENT, content="Hi there!", metadata=metadata
-        )
+        message = Message(role=MessageRole.AGENT, content="Hi there!", metadata=metadata)
 
         assert message.metadata == metadata
 

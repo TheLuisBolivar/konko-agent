@@ -1,14 +1,7 @@
 """Konko AI Conversational Agent - Configuration Package."""
 
 from .loader import ConfigurationError, load_config_from_dict, load_config_from_yaml
-from .schemas import (
-    AgentConfig,
-    AgentPersonality,
-    EscalationPolicy,
-    FieldConfig,
-    Formality,
-    Tone,
-)
+from .schemas import AgentConfig, AgentPersonality, EscalationPolicy, FieldConfig, Formality, Tone
 
 __version__ = "0.1.0"
 

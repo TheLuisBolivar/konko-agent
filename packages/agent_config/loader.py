@@ -4,7 +4,7 @@ This module provides utilities to load and validate agent configuration from YAM
 """
 
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, Union
 
 import yaml
 from pydantic import ValidationError
@@ -59,7 +59,7 @@ def load_config_from_yaml(config_path: Union[str, Path]) -> AgentConfig:
         raise ConfigurationError(f"Configuration validation failed: {e}") from e
 
 
-def load_config_from_dict(config_dict: dict) -> AgentConfig:
+def load_config_from_dict(config_dict: Dict[str, Any]) -> AgentConfig:
     """Load and validate agent configuration from a dictionary.
 
     Args:
