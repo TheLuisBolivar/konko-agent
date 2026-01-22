@@ -99,7 +99,7 @@ repos:
         entry: bash -c 'source .venv/bin/activate && pytest tests/unit/ -v --tb=short -x'
         language: system
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
 
       # Full test suite with coverage on push
       - id: pytest-coverage
@@ -107,4 +107,4 @@ repos:
         entry: bash -c 'source .venv/bin/activate && pytest tests/unit/ --cov=packages --cov-report=term --cov-fail-under=80'
         language: system
         pass_filenames: false
-        stages: [push]
+        stages: [pre-push]
