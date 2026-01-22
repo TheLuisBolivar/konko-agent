@@ -36,6 +36,26 @@ The agent:
 
 ## Installation
 
+### Quick Setup (Recommended)
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd konko-agent
+
+# One-command setup
+make setup
+
+# Activate virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Copy and configure environment variables
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+```
+
+### Manual Setup
+
 1. Clone the repository:
 ```bash
 git clone <repository-url>
@@ -61,6 +81,11 @@ cp .env.example .env
 # Edit .env and add your API keys
 # Required: OPENAI_API_KEY
 # Optional: LANGCHAIN_API_KEY for LangSmith tracing
+```
+
+5. Verify setup:
+```bash
+make verify
 ```
 
 ## Quick Start
@@ -110,7 +135,74 @@ docker-compose up --build
 
 ## Development
 
-### Running Tests
+### Development Commands
+
+The project includes a Makefile with common development tasks:
+
+```bash
+# See all available commands
+make help
+
+# Verify setup and dependencies
+make verify
+
+# Check implementation progress
+make progress
+
+# Run tests
+make test                # All tests
+make test-unit          # Unit tests only
+make test-integration   # Integration tests only
+make test-cov           # With coverage report
+
+# Code quality
+make format             # Format with black + isort
+make lint              # Lint with ruff + mypy
+
+# Run application (when implemented)
+make api               # Start FastAPI server
+make cli               # Start CLI interface
+
+# Docker
+make docker-up         # Start services
+make docker-down       # Stop services
+
+# Utilities
+make clean             # Clean generated files
+make status            # Show git status
+make push              # Push current branch
+```
+
+### Verification Scripts
+
+Two helper scripts are included for development:
+
+**`scripts/verify_setup.py`** - Verify environment setup:
+```bash
+python scripts/verify_setup.py
+# Checks:
+# - Python version
+# - All dependencies installed
+# - Project structure
+# - Environment variables
+```
+
+**`scripts/test_progress.sh`** - Check implementation progress:
+```bash
+./scripts/test_progress.sh
+# Shows:
+# - Current git branch
+# - Recent commits
+# - Setup verification
+# - Test results
+# - Which packages are ready
+```
+
+### Manual Commands
+
+If you prefer not to use the Makefile:
+
+#### Running Tests
 
 ```bash
 # Run all tests
@@ -124,7 +216,7 @@ pytest tests/unit/ -v
 pytest tests/integration/ -v
 ```
 
-### Code Quality
+#### Code Quality
 
 ```bash
 # Format code
