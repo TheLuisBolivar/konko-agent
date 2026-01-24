@@ -9,6 +9,7 @@ from typing import Optional, cast
 
 from agent_config import LLMConfig
 from agent_config import LLMProvider as LLMProviderEnum
+from langchain_anthropic import ChatAnthropic  # type: ignore[import-not-found]
 from langchain_core.language_models import BaseChatModel  # type: ignore[import-not-found]
 from langchain_openai import ChatOpenAI  # type: ignore[import-not-found]
 
@@ -51,12 +52,21 @@ def create_llm(config: LLMConfig) -> BaseChatModel:
         common_params["max_tokens"] = config.max_tokens
 
     # Provider-specific initialization
-    if config.provider in (LLMProviderEnum.OPENAI, LLMProviderEnum.ANTHROPIC):
-        # Both OpenAI and Anthropic use OpenAI-compatible API
-        # In production, Anthropic would use langchain-anthropic
+    if config.provider == LLMProviderEnum.OPENAI:
         if config.base_url:
             common_params["base_url"] = config.base_url
         return ChatOpenAI(**common_params)
+
+    if config.provider == LLMProviderEnum.ANTHROPIC:
+        # Use ChatAnthropic for Claude models
+        anthropic_params = {
+            "model": config.model_name,
+            "temperature": config.temperature,
+            "api_key": api_key,
+        }
+        if config.max_tokens is not None:
+            anthropic_params["max_tokens"] = config.max_tokens
+        return ChatAnthropic(**anthropic_params)
 
     raise LLMProviderError(f"Unsupported LLM provider: {config.provider}")
 

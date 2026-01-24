@@ -7,6 +7,7 @@ import pytest
 from agent_config import LLMConfig
 from agent_config import LLMProvider as LLMProviderEnum
 from agent_core import LLMProvider, LLMProviderError, create_llm
+from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 
 
@@ -70,6 +71,36 @@ class TestCreateLLM:
 
         assert isinstance(llm, ChatOpenAI)
         assert llm.openai_api_base == "https://custom.api.url"
+
+    def test_create_anthropic_llm_success(self):
+        """Test creating Anthropic LLM (Claude) with valid config."""
+        config = LLMConfig(
+            provider=LLMProviderEnum.ANTHROPIC,
+            model_name="claude-sonnet-4-20250514",
+            temperature=0.7,
+            api_key_env_var="ANTHROPIC_API_KEY",
+        )
+
+        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-anthropic-key"}):
+            llm = create_llm(config)
+
+        assert isinstance(llm, ChatAnthropic)
+        assert llm.model == "claude-sonnet-4-20250514"
+
+    def test_create_anthropic_llm_with_max_tokens(self):
+        """Test creating Anthropic LLM with max_tokens specified."""
+        config = LLMConfig(
+            provider=LLMProviderEnum.ANTHROPIC,
+            model_name="claude-sonnet-4-20250514",
+            max_tokens=2000,
+            api_key_env_var="ANTHROPIC_API_KEY",
+        )
+
+        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-anthropic-key"}):
+            llm = create_llm(config)
+
+        assert isinstance(llm, ChatAnthropic)
+        assert llm.max_tokens == 2000
 
 
 class TestLLMProvider:
