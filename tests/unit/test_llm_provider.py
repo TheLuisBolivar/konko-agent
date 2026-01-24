@@ -71,35 +71,6 @@ class TestCreateLLM:
         assert isinstance(llm, ChatOpenAI)
         assert llm.openai_api_base == "https://custom.api.url"
 
-    def test_create_konko_llm(self):
-        """Test creating Konko LLM (uses OpenAI-compatible API)."""
-        config = LLMConfig(
-            provider=LLMProviderEnum.KONKO,
-            model_name="meta-llama/Llama-2-13b-chat-hf",
-            api_key_env_var="KONKO_API_KEY",
-        )
-
-        with patch.dict(os.environ, {"KONKO_API_KEY": "test-konko-key"}):
-            llm = create_llm(config)
-
-        assert isinstance(llm, ChatOpenAI)
-        assert llm.openai_api_base == "https://api.konko.ai/v1"
-
-    def test_create_konko_llm_custom_url(self):
-        """Test creating Konko LLM with custom base URL."""
-        config = LLMConfig(
-            provider=LLMProviderEnum.KONKO,
-            model_name="meta-llama/Llama-2-13b-chat-hf",
-            base_url="https://custom.konko.url",
-            api_key_env_var="KONKO_API_KEY",
-        )
-
-        with patch.dict(os.environ, {"KONKO_API_KEY": "test-konko-key"}):
-            llm = create_llm(config)
-
-        assert isinstance(llm, ChatOpenAI)
-        assert llm.openai_api_base == "https://custom.konko.url"
-
 
 class TestLLMProvider:
     """Tests for LLMProvider class."""

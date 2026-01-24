@@ -111,7 +111,6 @@ class LLMProvider(str, Enum):
     """Supported LLM providers."""
 
     OPENAI = "openai"
-    KONKO = "konko"
     ANTHROPIC = "anthropic"
 
 

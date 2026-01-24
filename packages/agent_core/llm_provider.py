@@ -1,7 +1,7 @@
-"""LLM Provider for Konko AI Agent.
+"""LLM Provider for AI Agent.
 
 This module provides LLM initialization and interface for making calls to
-different LLM providers (OpenAI, Konko, Anthropic).
+different LLM providers (OpenAI, Anthropic).
 """
 
 import os
@@ -51,25 +51,14 @@ def create_llm(config: LLMConfig) -> BaseChatModel:
         common_params["max_tokens"] = config.max_tokens
 
     # Provider-specific initialization
-    if config.provider == LLMProviderEnum.OPENAI:
+    if config.provider in (LLMProviderEnum.OPENAI, LLMProviderEnum.ANTHROPIC):
+        # Both OpenAI and Anthropic use OpenAI-compatible API
+        # In production, Anthropic would use langchain-anthropic
         if config.base_url:
             common_params["base_url"] = config.base_url
         return ChatOpenAI(**common_params)
 
-    elif config.provider == LLMProviderEnum.KONKO:
-        # Konko uses OpenAI-compatible API
-        common_params["base_url"] = config.base_url or "https://api.konko.ai/v1"
-        return ChatOpenAI(**common_params)
-
-    elif config.provider == LLMProviderEnum.ANTHROPIC:
-        # For now, use OpenAI-compatible endpoint
-        # In production, you'd use langchain-anthropic
-        if config.base_url:
-            common_params["base_url"] = config.base_url
-        return ChatOpenAI(**common_params)
-
-    else:
-        raise LLMProviderError(f"Unsupported LLM provider: {config.provider}")
+    raise LLMProviderError(f"Unsupported LLM provider: {config.provider}")
 
 
 class LLMProvider:
