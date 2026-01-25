@@ -113,6 +113,10 @@ def _register_routes(app: FastAPI) -> None:
     Args:
         app: FastAPI application instance
     """
+    # Import and include conversation routes
+    from .routes import router as conversations_router
+
+    app.include_router(conversations_router)
 
     @app.get("/health")  # type: ignore[misc]
     async def health_check() -> dict[str, Any]:
