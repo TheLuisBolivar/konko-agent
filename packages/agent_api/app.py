@@ -115,8 +115,10 @@ def _register_routes(app: FastAPI) -> None:
     """
     # Import and include conversation routes
     from .routes import router as conversations_router
+    from .ws_routes import ws_router
 
     app.include_router(conversations_router)
+    app.include_router(ws_router)
 
     @app.get("/health")  # type: ignore[misc]
     async def health_check() -> dict[str, Any]:

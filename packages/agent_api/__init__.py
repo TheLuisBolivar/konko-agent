@@ -9,11 +9,14 @@ from .models import (
     StartConversationResponse,
 )
 from .routes import router
+from .websocket import ConnectionManager, get_manager
+from .ws_routes import ws_router
 
 __version__ = "0.1.0"
 
 __all__ = [
     "AppState",
+    "ConnectionManager",
     "ConversationResponse",
     "ErrorResponse",
     "MessageRequest",
@@ -21,5 +24,7 @@ __all__ = [
     "StartConversationResponse",
     "create_app",
     "get_app_state",
+    "get_manager",
     "router",
+    "ws_router",
 ]
