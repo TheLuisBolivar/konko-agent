@@ -1,4 +1,4 @@
-.PHONY: help setup verify test progress clean format lint hooks
+.PHONY: help setup verify test progress clean format lint hooks config
 
 # Colors
 BLUE := \033[0;34m
@@ -105,11 +105,31 @@ security: ## Run security checks
 
 api: ## Start FastAPI development server
 	@echo "$(BLUE)Starting FastAPI server...$(NC)"
-	. .venv/bin/activate && uvicorn app.main:app --reload
+	. .venv/bin/activate && uvicorn main:app --reload
+
+api-advanced: ## Start server with advanced config
+	@echo "$(BLUE)Starting FastAPI server with advanced config...$(NC)"
+	. .venv/bin/activate && AGENT_CONFIG_PATH=configs/advanced_agent.yaml uvicorn main:app --reload
+
+# ==================== Configuration Commands ====================
+
+config-list: ## List all available configurations
+	@. .venv/bin/activate && python scripts/config_tools.py list
+
+config-validate: ## Validate all configuration files
+	@. .venv/bin/activate && python scripts/config_tools.py validate
+
+config-show: ## Show config details (usage: make config-show CONFIG=basic_agent)
+	@if [ -z "$(CONFIG)" ]; then \
+		echo "$(RED)Usage: make config-show CONFIG=<config_name>$(NC)"; \
+		echo "Example: make config-show CONFIG=basic_agent"; \
+		exit 1; \
+	fi
+	@. .venv/bin/activate && python scripts/config_tools.py show $(CONFIG)
 
 cli: ## Run CLI with example config
 	@echo "$(BLUE)Starting CLI...$(NC)"
-	. .venv/bin/activate && python cli.py examples/basic_agent.yaml
+	. .venv/bin/activate && python cli.py configs/basic_agent.yaml
 
 docker-up: ## Start Docker Compose services
 	@echo "$(BLUE)Starting Docker services...$(NC)"
