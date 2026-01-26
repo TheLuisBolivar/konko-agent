@@ -3,8 +3,6 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from fastapi.testclient import TestClient
-
 from agent_api import create_app
 from agent_api.app import app_state
 from agent_api.websocket import ConnectionManager
@@ -12,6 +10,7 @@ from agent_config import AgentConfig, AgentPersonality, FieldConfig, Formality, 
 from agent_config import LLMProvider as LLMProviderEnum
 from agent_config import Tone
 from agent_core import LLMProvider
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture
@@ -125,7 +124,7 @@ class TestWebSocketEndpoint:
         client = TestClient(app)
 
         with pytest.raises(Exception):
-            with client.websocket_connect("/ws") as websocket:
+            with client.websocket_connect("/ws"):
                 pass
 
     def test_websocket_connect_with_agent(self, basic_config, mock_llm_provider, reset_app_state):

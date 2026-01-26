@@ -1,13 +1,12 @@
 """Tests for FastAPI Application Factory."""
 
 import pytest
-from fastapi.testclient import TestClient
-
 from agent_api import create_app
 from agent_api.app import AppState, app_state, get_app_state
 from agent_config import AgentConfig, AgentPersonality, FieldConfig, Formality, LLMConfig
 from agent_config import LLMProvider as LLMProviderEnum
 from agent_config import Tone
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture
@@ -68,7 +67,7 @@ class TestCreateApp:
 
     def test_create_app_initializes_store(self, reset_app_state):
         """Test that create_app initializes the state store."""
-        app = create_app()
+        _ = create_app()
 
         assert app_state.store is not None
 
