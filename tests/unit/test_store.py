@@ -1,6 +1,6 @@
 """Tests for state store."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from threading import Thread
 
 import pytest
@@ -201,7 +201,7 @@ class TestStateStore:
         # Create an old completed session
         old_state = ConversationState(session_id="old")
         old_state.mark_completed()
-        old_state.updated_at = datetime.utcnow() - timedelta(hours=2)
+        old_state.updated_at = datetime.now(timezone.utc) - timedelta(hours=2)
         store.create(old_state)
 
         # Create a recent completed session
@@ -211,7 +211,7 @@ class TestStateStore:
 
         # Create an old but still active session (should not be cleaned)
         active_state = ConversationState(session_id="active")
-        active_state.updated_at = datetime.utcnow() - timedelta(hours=2)
+        active_state.updated_at = datetime.now(timezone.utc) - timedelta(hours=2)
         store.create(active_state)
 
         # Clean up sessions older than 1 hour

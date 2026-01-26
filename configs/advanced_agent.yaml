@@ -1,4 +1,4 @@
-# Advanced Konko AI Agent Configuration
+# Advanced AI Agent Configuration
 # This example demonstrates more complex configuration options
 
 # Agent personality with friendly, emoji-enabled style
@@ -18,6 +18,15 @@ personality:
     - "⚠️"
     - "🤔"
     - "😊"
+
+# LLM Provider configuration with GPT-4
+llm:
+  provider: openai
+  model_name: gpt-4
+  temperature: 0.8            # Slightly higher for more creative responses
+  max_tokens: 1000            # Limit response length
+  api_key_env_var: OPENAI_API_KEY
+  base_url: null
 
 # Warm, friendly greeting
 greeting: "Hey there! 👋 I'm so excited to chat with you today! Let's get started by collecting a few details."

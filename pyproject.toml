@@ -15,6 +15,7 @@ authors = [
 dependencies = [
     "langchain>=0.1.0",
     "langchain-openai>=0.0.5",
+    "langchain-anthropic>=0.1.0",
     "langgraph>=0.0.40",
     "langsmith>=0.1.0",
     "openai>=1.10.0",
@@ -78,7 +79,7 @@ line_length = 100
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-select = ["E", "F", "I", "N", "W"]
+select = ["E", "F", "N", "W"]  # Note: "I" removed to avoid conflict with isort
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv", ".epsilon"]

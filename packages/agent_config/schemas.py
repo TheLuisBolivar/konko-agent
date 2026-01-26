@@ -107,6 +107,61 @@ class FieldConfig(BaseModel):
         return v
 
 
+class LLMProvider(str, Enum):
+    """Supported LLM providers."""
+
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+
+
+class LLMConfig(BaseModel):
+    """Configuration for LLM provider."""
+
+    provider: LLMProvider = Field(
+        default=LLMProvider.OPENAI,
+        description="LLM provider to use",
+    )
+    model_name: str = Field(
+        default="gpt-3.5-turbo",
+        description="Name of the model to use",
+    )
+    temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+        description="Temperature for response generation (0.0-2.0)",
+    )
+    max_tokens: Optional[int] = Field(
+        default=None,
+        gt=0,
+        description="Maximum tokens in response (optional)",
+    )
+    api_key_env_var: str = Field(
+        default="OPENAI_API_KEY",
+        description="Environment variable name for API key",
+    )
+    base_url: Optional[str] = Field(
+        default=None,
+        description="Base URL for API (optional, for custom endpoints)",
+    )
+
+    @field_validator("model_name")
+    @classmethod
+    def validate_model_name(cls, v: str) -> str:
+        """Validate model name is not empty."""
+        if not v or not v.strip():
+            raise ValueError("Model name cannot be empty")
+        return v.strip()
+
+    @field_validator("api_key_env_var")
+    @classmethod
+    def validate_api_key_env_var(cls, v: str) -> str:
+        """Validate API key env var is not empty."""
+        if not v or not v.strip():
+            raise ValueError("API key environment variable cannot be empty")
+        return v.strip()
+
+
 class EscalationPolicy(BaseModel):
     """Configuration for an escalation policy."""
 
@@ -151,6 +206,10 @@ class AgentConfig(BaseModel):
     personality: AgentPersonality = Field(
         default_factory=AgentPersonality,
         description="Agent personality configuration",
+    )
+    llm: LLMConfig = Field(
+        default_factory=LLMConfig,
+        description="LLM provider configuration",
     )
     greeting: str = Field(
         default="Hello! I'm here to help collect some information.",

@@ -1,6 +1,6 @@
 """Tests for conversation state models."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from agent_runtime import ConversationState, ConversationStatus, FieldValue, Message, MessageRole
 
@@ -41,7 +41,7 @@ class TestFieldValue:
 
     def test_field_value_with_data(self):
         """Test creating a field value with data."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         field = FieldValue(
             field_name="email",
             value="test@example.com",
@@ -187,7 +187,7 @@ class TestConversationState:
     def test_get_duration_seconds_ended(self):
         """Test getting duration for ended conversation."""
         state = ConversationState()
-        state.started_at = datetime.utcnow() - timedelta(minutes=5)
+        state.started_at = datetime.now(timezone.utc) - timedelta(minutes=5)
         state.mark_completed()
 
         duration = state.get_duration_seconds()

@@ -4,7 +4,7 @@ This module provides an in-memory implementation of state storage.
 For production use, this can be replaced with Redis or another persistent store.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from threading import Lock
 from typing import Dict, List, Optional
 
@@ -70,7 +70,7 @@ class StateStore:
             if state.session_id not in self._states:
                 raise ValueError(f"State with session_id {state.session_id} not found")
 
-            state.updated_at = datetime.utcnow()
+            state.updated_at = datetime.now(timezone.utc)
             self._states[state.session_id] = state
             return state
 
@@ -168,7 +168,7 @@ class StateStore:
             Number of sessions cleaned up
         """
         with self._lock:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             to_delete = []
 
             for session_id, state in self._states.items():

@@ -1,0 +1,130 @@
+### ============================================
+### Konko AI Agent - REST API Requests
+### ============================================
+### Use with VS Code REST Client or IntelliJ HTTP Client
+###
+### Start server:
+###   source .venv/bin/activate
+###   uvicorn main:app --reload
+###
+### Or with custom config:
+###   AGENT_CONFIG_PATH=configs/advanced_agent.yaml uvicorn main:app --reload
+
+@baseUrl = http://localhost:8000
+
+
+### ============================================
+### Health & Info
+### ============================================
+
+### Health Check
+GET {{baseUrl}}/health
+
+###
+
+### Root Endpoint - API Info
+GET {{baseUrl}}/
+
+
+### ============================================
+### Configuration Management
+### ============================================
+
+### List Available Configurations
+GET {{baseUrl}}/config/list
+
+###
+
+### Get Current Configuration
+GET {{baseUrl}}/config/current
+
+###
+
+### Change Configuration
+### Note: Only works when no active conversations exist
+PUT {{baseUrl}}/config
+Content-Type: application/json
+
+{
+    "config_name": "basic_agent"
+}
+
+###
+
+### Change to Advanced Configuration
+PUT {{baseUrl}}/config
+Content-Type: application/json
+
+{
+    "config_name": "advanced_agent"
+}
+
+
+### ============================================
+### Conversation Flow
+### ============================================
+
+### 1. Start a New Conversation
+# @name startConversation
+POST {{baseUrl}}/conversations
+Content-Type: application/json
+
+###
+
+### 2. Get Conversation State
+### Replace SESSION_ID with your session_id from step 1
+@sessionId = 08287b13-8947-4c3f-8b2e-f07bf96fc2f2
+
+GET {{baseUrl}}/conversations/{{sessionId}}
+
+###
+
+### 3. Send Message - Provide Name
+POST {{baseUrl}}/conversations/{{sessionId}}/messages
+Content-Type: application/json
+
+{
+    "content": "My name is Luis Bolivar como estas?"
+}
+
+###
+
+### 4. Send Message - Provide Email
+POST {{baseUrl}}/conversations/{{sessionId}}/messages
+Content-Type: application/json
+
+{
+    "content": "My email is john@example.com"
+}
+
+###
+
+### 5. Send Message - Provide Phone (optional field)
+POST {{baseUrl}}/conversations/{{sessionId}}/messages
+Content-Type: application/json
+
+{
+    "content": "My phone is 555-123-4567"
+}
+
+###
+
+### 6. Check Final State
+GET {{baseUrl}}/conversations/{{sessionId}}
+
+###
+
+### 7. Delete Conversation
+DELETE {{baseUrl}}/conversations/{{sessionId}}
+
+
+### ============================================
+### WebSocket (for reference)
+### ============================================
+### WebSocket connections available at:
+### - ws://localhost:8000/ws           (new conversation)
+### - ws://localhost:8000/ws/{session_id}  (continue existing)
+###
+### Message format:
+### Send: {"type": "message", "content": "Hello"}
+### Receive: {"type": "response", "content": "...", "status": "active", "collected_data": {...}}
