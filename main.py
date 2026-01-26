@@ -2,13 +2,13 @@
 
 import os
 
-from dotenv import load_dotenv  # type: ignore[import-not-found]
+from dotenv import load_dotenv
 
 # Load environment variables from .env file BEFORE importing agent modules
 load_dotenv()
 
 # Now import agent modules (they may need env vars)
-from agent_api import create_app  # type: ignore[import-not-found]  # noqa: E402
+from agent_api import create_app  # noqa: E402
 
 # Load config path from environment or use default
 config_path = os.getenv("AGENT_CONFIG_PATH", "configs/basic_agent.yaml")
@@ -17,7 +17,7 @@ config_path = os.getenv("AGENT_CONFIG_PATH", "configs/basic_agent.yaml")
 app = create_app(config_path=config_path)
 
 if __name__ == "__main__":
-    import uvicorn  # type: ignore[import-not-found]
+    import uvicorn
 
     uvicorn.run(
         "main:app",
