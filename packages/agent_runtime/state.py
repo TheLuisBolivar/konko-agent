@@ -4,7 +4,7 @@ This module defines the state models used during agent execution,
 including conversation state, field collection progress, and message history.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -36,7 +36,7 @@ class Message(BaseModel):
     role: MessageRole = Field(..., description="Role of the message sender")
     content: str = Field(..., description="Content of the message")
     timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="When the message was sent"
+        default_factory=lambda: datetime.now(timezone.utc), description="When the message was sent"
     )
     metadata: Dict[str, Any] = Field(
         default_factory=dict, description="Additional message metadata"
@@ -94,10 +94,11 @@ class ConversationState(BaseModel):
 
     # Timestamps
     started_at: datetime = Field(
-        default_factory=datetime.utcnow, description="When the conversation started"
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="When the conversation started",
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Last update timestamp"
+        default_factory=lambda: datetime.now(timezone.utc), description="Last update timestamp"
     )
     ended_at: Optional[datetime] = Field(default=None, description="When the conversation ended")
 
@@ -119,7 +120,7 @@ class ConversationState(BaseModel):
         """
         message = Message(role=role, content=content, metadata=metadata)
         self.messages.append(message)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return message
 
     def update_field_value(
@@ -142,9 +143,9 @@ class ConversationState(BaseModel):
         field_value.value = value
         field_value.is_valid = is_valid
         field_value.attempts += 1
-        field_value.last_attempt_timestamp = datetime.utcnow()
+        field_value.last_attempt_timestamp = datetime.now(timezone.utc)
 
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return field_value
 
     def get_collected_data(self) -> Dict[str, str]:
@@ -182,14 +183,14 @@ class ConversationState(BaseModel):
         self.escalation_triggered = True
         self.escalation_reason = reason
         self.escalation_policy_id = policy_id
-        self.ended_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.ended_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_completed(self) -> None:
         """Mark the conversation as successfully completed."""
         self.status = ConversationStatus.COMPLETED
-        self.ended_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.ended_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def mark_failed(self, reason: Optional[str] = None) -> None:
         """Mark the conversation as failed.
@@ -200,8 +201,8 @@ class ConversationState(BaseModel):
         self.status = ConversationStatus.FAILED
         if reason:
             self.metadata["failure_reason"] = reason
-        self.ended_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        self.ended_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(timezone.utc)
 
     def get_duration_seconds(self) -> float:
         """Get the duration of the conversation in seconds.
@@ -209,5 +210,5 @@ class ConversationState(BaseModel):
         Returns:
             Duration in seconds, or time since start if not ended
         """
-        end_time = self.ended_at or datetime.utcnow()
+        end_time = self.ended_at or datetime.now(timezone.utc)
         return (end_time - self.started_at).total_seconds()

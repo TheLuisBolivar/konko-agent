@@ -1,0 +1,78 @@
+### Konko AI Agent - REST API Requests
+### Use with VS Code REST Client or IntelliJ HTTP Client
+
+@baseUrl = http://localhost:8000
+
+
+### Health Check
+GET {{baseUrl}}/health
+
+
+### Root Endpoint
+GET {{baseUrl}}/
+
+
+### OpenAPI Documentation
+GET {{baseUrl}}/openapi.json
+
+
+### ============================================
+### Conversation Endpoints
+### ============================================
+
+### Start a New Conversation
+# @name startConversation
+POST {{baseUrl}}/conversations
+Content-Type: application/json
+
+
+### Get Conversation State
+# Replace {session_id} with actual session ID from startConversation response
+@sessionId = {{startConversation.response.body.session_id}}
+
+GET {{baseUrl}}/conversations/{{sessionId}}
+
+
+### Send Message to Conversation
+POST {{baseUrl}}/conversations/{{sessionId}}/messages
+Content-Type: application/json
+
+{
+    "content": "My name is John Doe"
+}
+
+
+### Send Another Message (Email)
+POST {{baseUrl}}/conversations/{{sessionId}}/messages
+Content-Type: application/json
+
+{
+    "content": "My email is john@example.com"
+}
+
+
+### Delete Conversation
+DELETE {{baseUrl}}/conversations/{{sessionId}}
+
+
+### ============================================
+### Manual Testing with Fixed Session ID
+### ============================================
+
+### Start Conversation (Manual)
+# @name manualStart
+POST {{baseUrl}}/conversations
+Content-Type: application/json
+
+
+### Send Message (Manual) - Replace session_id below
+POST {{baseUrl}}/conversations/REPLACE_WITH_SESSION_ID/messages
+Content-Type: application/json
+
+{
+    "content": "Hello, my name is Luis"
+}
+
+
+### Get Conversation (Manual) - Replace session_id below
+GET {{baseUrl}}/conversations/REPLACE_WITH_SESSION_ID
