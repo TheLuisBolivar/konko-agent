@@ -113,10 +113,12 @@ def _register_routes(app: FastAPI) -> None:
     Args:
         app: FastAPI application instance
     """
-    # Import and include conversation routes
+    # Import and include routes
+    from .config_routes import config_router
     from .routes import router as conversations_router
     from .ws_routes import ws_router
 
+    app.include_router(config_router)
     app.include_router(conversations_router)
     app.include_router(ws_router)
 

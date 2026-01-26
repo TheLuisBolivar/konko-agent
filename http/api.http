@@ -1,39 +1,85 @@
+### ============================================
 ### Konko AI Agent - REST API Requests
+### ============================================
 ### Use with VS Code REST Client or IntelliJ HTTP Client
+###
+### Start server:
+###   source .venv/bin/activate
+###   uvicorn main:app --reload
+###
+### Or with custom config:
+###   AGENT_CONFIG_PATH=configs/advanced_agent.yaml uvicorn main:app --reload
 
 @baseUrl = http://localhost:8000
 
 
+### ============================================
+### Health & Info
+### ============================================
+
 ### Health Check
 GET {{baseUrl}}/health
 
+###
 
-### Root Endpoint
+### Root Endpoint - API Info
 GET {{baseUrl}}/
 
 
-### OpenAPI Documentation
-GET {{baseUrl}}/openapi.json
+### ============================================
+### Configuration Management
+### ============================================
+
+### List Available Configurations
+GET {{baseUrl}}/config/list
+
+###
+
+### Get Current Configuration
+GET {{baseUrl}}/config/current
+
+###
+
+### Change Configuration
+### Note: Only works when no active conversations exist
+PUT {{baseUrl}}/config
+Content-Type: application/json
+
+{
+    "config_name": "basic_agent"
+}
+
+###
+
+### Change to Advanced Configuration
+PUT {{baseUrl}}/config
+Content-Type: application/json
+
+{
+    "config_name": "advanced_agent"
+}
 
 
 ### ============================================
-### Conversation Endpoints
+### Conversation Flow
 ### ============================================
 
-### Start a New Conversation
+### 1. Start a New Conversation
 # @name startConversation
 POST {{baseUrl}}/conversations
 Content-Type: application/json
 
+###
 
-### Get Conversation State
-# Replace {session_id} with actual session ID from startConversation response
-@sessionId = {{startConversation.response.body.session_id}}
+### 2. Get Conversation State
+### Replace SESSION_ID with your session_id from step 1
+@sessionId = SESSION_ID
 
 GET {{baseUrl}}/conversations/{{sessionId}}
 
+###
 
-### Send Message to Conversation
+### 3. Send Message - Provide Name
 POST {{baseUrl}}/conversations/{{sessionId}}/messages
 Content-Type: application/json
 
@@ -41,8 +87,9 @@ Content-Type: application/json
     "content": "My name is John Doe"
 }
 
+###
 
-### Send Another Message (Email)
+### 4. Send Message - Provide Email
 POST {{baseUrl}}/conversations/{{sessionId}}/messages
 Content-Type: application/json
 
@@ -50,29 +97,34 @@ Content-Type: application/json
     "content": "My email is john@example.com"
 }
 
+###
 
-### Delete Conversation
+### 5. Send Message - Provide Phone (optional field)
+POST {{baseUrl}}/conversations/{{sessionId}}/messages
+Content-Type: application/json
+
+{
+    "content": "My phone is 555-123-4567"
+}
+
+###
+
+### 6. Check Final State
+GET {{baseUrl}}/conversations/{{sessionId}}
+
+###
+
+### 7. Delete Conversation
 DELETE {{baseUrl}}/conversations/{{sessionId}}
 
 
 ### ============================================
-### Manual Testing with Fixed Session ID
+### WebSocket (for reference)
 ### ============================================
-
-### Start Conversation (Manual)
-# @name manualStart
-POST {{baseUrl}}/conversations
-Content-Type: application/json
-
-
-### Send Message (Manual) - Replace session_id below
-POST {{baseUrl}}/conversations/REPLACE_WITH_SESSION_ID/messages
-Content-Type: application/json
-
-{
-    "content": "Hello, my name is Luis"
-}
-
-
-### Get Conversation (Manual) - Replace session_id below
-GET {{baseUrl}}/conversations/REPLACE_WITH_SESSION_ID
+### WebSocket connections available at:
+### - ws://localhost:8000/ws           (new conversation)
+### - ws://localhost:8000/ws/{session_id}  (continue existing)
+###
+### Message format:
+### Send: {"type": "message", "content": "Hello"}
+### Receive: {"type": "response", "content": "...", "status": "active", "collected_data": {...}}
