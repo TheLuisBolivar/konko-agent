@@ -2,7 +2,13 @@
 
 import os
 
-from agent_api import create_app
+from dotenv import load_dotenv  # type: ignore[import-not-found]
+
+# Load environment variables from .env file BEFORE importing agent modules
+load_dotenv()
+
+# Now import agent modules (they may need env vars)
+from agent_api import create_app  # type: ignore[import-not-found]  # noqa: E402
 
 # Load config path from environment or use default
 config_path = os.getenv("AGENT_CONFIG_PATH", "configs/basic_agent.yaml")
