@@ -1,8 +1,7 @@
 """API routes for conversation management."""
 
-from fastapi import APIRouter, HTTPException  # type: ignore[import-not-found]
-
 from agent_core import AgentError
+from fastapi import APIRouter, HTTPException  # type: ignore[import-not-found]
 
 from .app import get_app_state
 from .models import (

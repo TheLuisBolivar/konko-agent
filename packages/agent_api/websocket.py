@@ -2,10 +2,9 @@
 
 from typing import Any
 
-from fastapi import WebSocket, WebSocketDisconnect  # type: ignore[import-not-found]
-
 from agent_core import AgentError
 from agent_runtime import ConversationState
+from fastapi import WebSocket, WebSocketDisconnect  # type: ignore[import-not-found]
 
 from .app import AppState, get_app_state
 

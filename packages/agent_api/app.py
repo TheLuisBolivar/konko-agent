@@ -7,12 +7,11 @@ for the conversational agent REST API.
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Optional
 
-from fastapi import FastAPI  # type: ignore[import-not-found]
-from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-not-found]
-
 from agent_config import AgentConfig, load_config_from_yaml
 from agent_core import ConversationalAgent
 from agent_runtime import StateStore
+from fastapi import FastAPI  # type: ignore[import-not-found]
+from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-not-found]
 
 
 class AppState:

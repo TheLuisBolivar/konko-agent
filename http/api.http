@@ -73,7 +73,7 @@ Content-Type: application/json
 
 ### 2. Get Conversation State
 ### Replace SESSION_ID with your session_id from step 1
-@sessionId = SESSION_ID
+@sessionId = 08287b13-8947-4c3f-8b2e-f07bf96fc2f2
 
 GET {{baseUrl}}/conversations/{{sessionId}}
 
@@ -84,7 +84,7 @@ POST {{baseUrl}}/conversations/{{sessionId}}/messages
 Content-Type: application/json
 
 {
-    "content": "My name is John Doe"
+    "content": "My name is Luis Bolivar como estas?"
 }
 
 ###

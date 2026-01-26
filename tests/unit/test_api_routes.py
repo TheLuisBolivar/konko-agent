@@ -3,15 +3,13 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from fastapi.testclient import TestClient
-
 from agent_api import create_app
 from agent_api.app import app_state
 from agent_config import AgentConfig, AgentPersonality, FieldConfig, Formality, LLMConfig
 from agent_config import LLMProvider as LLMProviderEnum
 from agent_config import Tone
 from agent_core import LLMProvider
-from agent_runtime import ConversationState, MessageRole
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture

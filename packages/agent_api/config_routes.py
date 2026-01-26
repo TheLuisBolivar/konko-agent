@@ -4,11 +4,10 @@ import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException  # type: ignore[import-not-found]
-from pydantic import BaseModel, Field
-
 from agent_config import ConfigurationError, load_config_from_yaml
 from agent_core import ConversationalAgent
+from fastapi import APIRouter, HTTPException  # type: ignore[import-not-found]
+from pydantic import BaseModel, Field
 
 from .app import get_app_state
 

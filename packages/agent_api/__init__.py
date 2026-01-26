@@ -1,6 +1,7 @@
 """Konko AI Conversational Agent - API Package."""
 
 from .app import AppState, create_app, get_app_state
+from .config_routes import config_router
 from .models import (
     ConversationResponse,
     ErrorResponse,
@@ -8,7 +9,6 @@ from .models import (
     MessageResponse,
     StartConversationResponse,
 )
-from .config_routes import config_router
 from .routes import router
 from .websocket import ConnectionManager, get_manager
 from .ws_routes import ws_router
