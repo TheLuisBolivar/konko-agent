@@ -45,7 +45,7 @@ jobs:
         run: |
           pre-commit run --all-files --show-diff-on-failure
         env:
-          SKIP: pytest-quick,pytest-coverage,pylint,pylint-strict,radon-complexity,radon-maintainability
+          SKIP: pytest-quick,pytest-coverage,pylint,pylint-strict,radon-complexity,radon-maintainability,bandit
 
   # ============================================
   # Job 2: Code Quality Analysis
