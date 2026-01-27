@@ -1,6 +1,5 @@
 """Tests for configuration loader."""
 
-
 import pytest
 from agent_config import ConfigurationError, load_config_from_dict, load_config_from_yaml
 from agent_config.schemas import AgentConfig, Tone
