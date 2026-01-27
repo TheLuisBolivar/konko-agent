@@ -43,6 +43,11 @@ fields:
     required: true
     prompt_hint: "And your last name?"
 
+  - name: address
+    field_type: text
+    required: true
+    prompt_hint: "What's your mailing address?"
+
   - name: email
     field_type: email
     required: true
