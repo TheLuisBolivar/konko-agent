@@ -48,6 +48,9 @@ dev = [
     "flake8-bugbear>=23.0.0",
     "flake8-comprehensions>=3.14.0",
     "flake8-simplify>=0.21.0",
+    # Static analysis (similar to SonarCloud)
+    "pylint>=3.0.0",
+    "radon>=6.0.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -115,3 +118,46 @@ max-complexity = 10
 max-line-length = 100
 extend-ignore = ["E203", "W503"]
 exclude = [".venv", ".epsilon", "tests"]
+
+[tool.pylint.main]
+# Paths to analyse
+source-roots = ["packages"]
+ignore = ["tests", ".venv", ".epsilon"]
+ignore-patterns = ["test_.*\\.py"]
+
+[tool.pylint.messages_control]
+# Disable messages that conflict with other tools or are too strict
+disable = [
+    "C0114",  # missing-module-docstring (handled by pydocstyle)
+    "C0115",  # missing-class-docstring (handled by pydocstyle)
+    "C0116",  # missing-function-docstring (handled by pydocstyle)
+    "R0903",  # too-few-public-methods (Pydantic models)
+    "R0913",  # too-many-arguments (sometimes necessary)
+    "W0511",  # fixme/todo comments
+    "E1101",  # no-member (false positives with Pydantic)
+    "W0212",  # protected-access (needed for testing)
+]
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pylint.design]
+max-args = 7
+max-locals = 15
+max-returns = 6
+max-branches = 12
+max-statements = 50
+max-attributes = 10
+min-public-methods = 1
+
+[tool.pylint.similarities]
+# Minimum lines number of a similarity
+min-similarity-lines = 6
+ignore-comments = true
+ignore-docstrings = true
+ignore-imports = true
+
+[tool.pylint.reports]
+output-format = "colorized"
+reports = true
+score = true

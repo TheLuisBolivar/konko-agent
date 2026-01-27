@@ -90,9 +90,35 @@ repos:
           - flake8-comprehensions
           - flake8-simplify
 
-  # Local hooks for tests and coverage
+  # Pylint for comprehensive code analysis (similar to SonarCloud)
   - repo: local
     hooks:
+      - id: pylint
+        name: pylint (code quality analysis)
+        entry: bash -c 'source .venv/bin/activate && pylint packages/ --rcfile=pyproject.toml --exit-zero'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true
+
+      # Radon for complexity metrics
+      - id: radon-complexity
+        name: radon (cyclomatic complexity)
+        entry: bash -c 'source .venv/bin/activate && radon cc packages/ -a -s --total-average'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true
+
+      # Radon maintainability index
+      - id: radon-maintainability
+        name: radon (maintainability index)
+        entry: bash -c 'source .venv/bin/activate && radon mi packages/ -s'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: true
+
       # Fast unit tests on commit
       - id: pytest-quick
         name: pytest (quick - unit tests only)
@@ -105,6 +131,14 @@ repos:
       - id: pytest-coverage
         name: pytest with coverage
         entry: bash -c 'source .venv/bin/activate && pytest tests/unit/ --cov=packages --cov-report=term --cov-fail-under=80'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      # Pylint strict check on push (fails on low score)
+      - id: pylint-strict
+        name: pylint strict (min score 8.0)
+        entry: bash -c 'source .venv/bin/activate && pylint packages/ --rcfile=pyproject.toml --fail-under=8.0'
         language: system
         pass_filenames: false
         stages: [pre-push]

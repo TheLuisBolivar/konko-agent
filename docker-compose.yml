@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Main API service
+  konko-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: theluisbolivar/konko-agent:latest
+    container_name: konko-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=info
+    volumes:
+      - ./configs:/app/configs:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Development service with hot reload
+  konko-agent-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: konko-agent-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=debug
+    volumes:
+      - ./packages:/app/packages
+      - ./configs:/app/configs
+      - ./main.py:/app/main.py
+    profiles:
+      - dev
+    restart: unless-stopped
+
+  # Redis for production state storage (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: konko-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - with-redis
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+
+networks:
+  default:
+    name: konko-network
