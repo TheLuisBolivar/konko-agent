@@ -39,6 +39,11 @@ fields:
     validation_pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
     prompt_hint: "What's your email address?"
 
+  - name: address
+    field_type: text
+    required: true
+    prompt_hint: "What's your mailing address?"
+
   - name: phone_number
     field_type: phone
     required: false
