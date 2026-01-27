@@ -217,10 +217,14 @@ class TestConversationFlow:
         client = TestClient(app)
 
         # Set up mock responses for the full flow
+        # Graph flow: for each message - check_off_topic (LLM), extract_field (LLM),
+        #             then prompt_next or complete (LLM)
         mock_llm_provider.ainvoke = AsyncMock(
             side_effect=[
+                "ON_TOPIC",  # off-topic check for name message
                 "John Doe",  # Extract name
                 "Great! What's your email?",  # Ask for email
+                "ON_TOPIC",  # off-topic check for email message
                 "john@example.com",  # Extract email
                 "Thank you! All information collected.",  # Completion
             ]
