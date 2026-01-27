@@ -2,22 +2,65 @@
 
 Un agente conversacional configurable construido con LangChain, LangGraph y FastAPI para recolectar información de usuarios mediante diálogos naturales.
 
-[![Tests](https://img.shields.io/badge/tests-79%20passing-success)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-98.94%25-brightgreen)](htmlcov/index.html)
+[![Tests](https://img.shields.io/badge/tests-264%20passing-success)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage->95%25-brightgreen)](htmlcov/index.html)
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](pyproject.toml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## 🚀 Características
 
+- ✅ **LangGraph State Machine** para control de flujo conversacional
 - ✅ **Configuración basada en YAML** con validación Pydantic
 - ✅ **Gestión de estado** thread-safe con soporte para Redis
 - ✅ **Múltiples políticas de escalación** (keyword, timeout, sentiment, LLM intent)
+- ✅ **Detección de correcciones** ("No, mi email es...")
+- ✅ **Detección de off-topic** y redirección automática
 - ✅ **Dual interface**: REST API + WebSocket y CLI
 - ✅ **Type-safe** con mypy strict mode (100% type coverage)
-- ✅ **Alta cobertura de tests** (98.94%, 79/79 passing)
+- ✅ **Alta cobertura de tests** (264 tests passing)
 - ✅ **Calidad de código garantizada** con pre-commit hooks
 - ✅ **Análisis de seguridad** automático con Bandit
 - ✅ **Complejidad controlada** (<10 por función)
+
+## 🔄 Arquitectura del Flujo Conversacional
+
+El agente utiliza una **state machine basada en LangGraph** para controlar el flujo de la conversación:
+
+```
+START → check_escalation
+           │
+    ┌──────┴──────┐
+    ↓             ↓
+escalate    check_correction
+    ↓             │
+   END     ┌──────┴──────┐
+           ↓             ↓
+    extract_field   check_off_topic
+           │             │
+           ↓      ┌──────┴──────┐
+        validate  ↓             ↓
+           │   prompt_next   complete
+    ┌──────┴──────┐   │         ↓
+    ↓             ↓   ↓        END
+prompt_next   complete
+    ↓             ↓
+   END           END
+```
+
+### Nodos del Grafo
+
+| Nodo | Descripción |
+|------|-------------|
+| `check_escalation` | Evalúa políticas de escalación (keyword, timeout, sentiment, etc.) |
+| `check_correction` | Detecta correcciones del usuario ("No, mi email es...") |
+| `check_off_topic` | Identifica respuestas fuera de tema |
+| `extract_field` | Extrae valores de campos del mensaje del usuario |
+| `validate` | Valida el valor extraído según el tipo de campo |
+| `prompt_next` | Genera prompt para el siguiente campo o re-pregunta |
+| `escalate` | Maneja la escalación a agente humano |
+| `complete` | Genera mensaje de completitud cuando todos los campos están recolectados |
+
+Para más detalles, ver [docs/CONVERSATION_FLOW.md](docs/CONVERSATION_FLOW.md)
 
 ## 📦 Instalación
 
@@ -179,26 +222,44 @@ konko-agent/
 ├── packages/                    # Código fuente del proyecto
 │   ├── agent_config/           # ✅ Configuración y validación
 │   │   ├── __init__.py
-│   │   ├── schemas.py          # Modelos Pydantic (24 tests)
-│   │   └── loader.py           # Cargador YAML (16 tests)
+│   │   ├── schemas.py          # Modelos Pydantic
+│   │   └── loader.py           # Cargador YAML
 │   ├── agent_runtime/          # ✅ Gestión de estado
 │   │   ├── __init__.py
-│   │   ├── state.py            # Modelos de estado (18 tests)
-│   │   └── store.py            # Store thread-safe (21 tests)
-│   └── agent_core/             # 🚧 Lógica del agente (próximamente)
+│   │   ├── state.py            # Modelos de estado
+│   │   └── store.py            # Store thread-safe
+│   └── agent_core/             # ✅ Lógica del agente
+│       ├── __init__.py
+│       ├── agent.py            # Agente principal
+│       ├── llm_provider.py     # Proveedor de LLM
+│       ├── escalation/         # Motor de escalación
+│       │   ├── engine.py
+│       │   ├── handlers/       # Handlers de políticas
+│       │   └── ...
+│       └── graph/              # ✅ LangGraph State Machine
+│           ├── __init__.py
+│           ├── state.py        # GraphState TypedDict
+│           ├── nodes.py        # 8 funciones de nodo
+│           ├── edges.py        # Funciones de routing
+│           └── builder.py      # Constructor del grafo
 │
 ├── configs/                     # Configuraciones de ejemplo
 │   ├── basic_agent.yaml        # Configuración básica (3 campos)
 │   └── advanced_agent.yaml     # Configuración avanzada (7 campos)
 │
-├── tests/                       # Suite de tests
-│   └── unit/                   # Tests unitarios (79 tests)
-│       ├── test_config_schemas.py
-│       ├── test_config_loader.py
+├── tests/                       # Suite de tests (264 tests)
+│   └── unit/
+│       ├── test_agent.py
+│       ├── test_config_*.py
 │       ├── test_state.py
-│       └── test_store.py
+│       ├── test_store.py
+│       ├── test_escalation_*.py
+│       ├── test_graph_nodes.py      # Tests de nodos
+│       ├── test_graph_edges.py      # Tests de routing
+│       └── test_graph_integration.py # Tests de flujos
 │
 ├── docs/                        # Documentación
+│   ├── CONVERSATION_FLOW.md    # Arquitectura del flujo conversacional
 │   ├── PRE_COMMIT_HOOKS.md     # Guía de git hooks
 │   └── CODE_QUALITY_TOOLS.md   # Herramientas de calidad
 │
@@ -216,8 +277,8 @@ konko-agent/
 
 | Métrica | Valor | Status |
 |---------|-------|--------|
-| **Tests** | 79/79 pasando | ✅ 100% |
-| **Coverage** | 98.94% (283/286 statements) | ✅ Excelente |
+| **Tests** | 264/264 pasando | ✅ 100% |
+| **Coverage** | >95% | ✅ Excelente |
 | **Type Coverage** | 100% (mypy strict) | ✅ Perfecto |
 | **Complejidad** | <10 por función | ✅ Bajo |
 | **Seguridad** | 0 vulnerabilidades | ✅ Seguro |
@@ -290,6 +351,71 @@ Ver `configs/advanced_agent.yaml` para un ejemplo con:
 - 7 campos de diferentes tipos (text, email, phone, url, number, date)
 - 5 políticas de escalación (keyword, timeout, sentiment, llm_intent, completion)
 - Personalidad friendly con emojis habilitados
+
+## 🌐 Probar la API
+
+### Iniciar el Servidor
+
+```bash
+# Activar ambiente y configurar API key
+source .venv/bin/activate
+export OPENAI_API_KEY="sk-tu-api-key"
+
+# Iniciar servidor (puerto 8000)
+python main.py
+```
+
+### Endpoints Disponibles
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/conversations` | Iniciar nueva conversación |
+| `POST` | `/conversations/{id}/messages` | Enviar mensaje |
+| `GET` | `/conversations/{id}` | Ver estado de conversación |
+| `DELETE` | `/conversations/{id}` | Eliminar conversación |
+| `WS` | `/ws` | WebSocket para tiempo real |
+| `GET` | `/health` | Health check |
+| `GET` | `/docs` | Swagger UI (documentación interactiva) |
+
+### Probar con curl
+
+```bash
+# 1. Iniciar conversación
+curl -X POST http://localhost:8000/conversations | jq
+
+# 2. Enviar mensaje (reemplaza SESSION_ID)
+curl -X POST "http://localhost:8000/conversations/SESSION_ID/messages" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Mi nombre es Luis"}' | jq
+
+# 3. Probar corrección
+curl -X POST "http://localhost:8000/conversations/SESSION_ID/messages" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "No, mi nombre es Luis Bolivar"}' | jq
+
+# 4. Probar off-topic (el agente redirige)
+curl -X POST "http://localhost:8000/conversations/SESSION_ID/messages" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "¿Qué hora es?"}' | jq
+
+# 5. Ver estado de la conversación
+curl -X GET "http://localhost:8000/conversations/SESSION_ID" | jq
+```
+
+### Probar con WebSocket
+
+```bash
+# Requiere wscat: npm install -g wscat
+wscat -c ws://localhost:8000/ws
+
+# Una vez conectado, enviar mensajes:
+> {"type": "message", "content": "Mi nombre es Luis"}
+> {"type": "message", "content": "luis@ejemplo.com"}
+```
+
+### Swagger UI
+
+Abre `http://localhost:8000/docs` en tu navegador para probar la API de forma interactiva.
 
 ## 🧪 Testing
 
@@ -371,6 +497,7 @@ safety check
 
 ## 📚 Documentación
 
+- **[Conversation Flow](docs/CONVERSATION_FLOW.md)** - Arquitectura del flujo conversacional (LangGraph)
 - **[Pre-commit Hooks](docs/PRE_COMMIT_HOOKS.md)** - Guía completa de git hooks
 - **[Code Quality Tools](docs/CODE_QUALITY_TOOLS.md)** - Herramientas de calidad y recomendaciones
 - **[Implementation Plan](.epsilon/)** - Plan de implementación detallado
@@ -381,8 +508,8 @@ safety check
 
 Para que un PR sea aceptado debe cumplir:
 
-- ✅ **Todos los tests pasando** (79/79)
-- ✅ **Coverage >80%** (actualmente 98.94%)
+- ✅ **Todos los tests pasando** (264/264)
+- ✅ **Coverage >80%** (actualmente >95%)
 - ✅ **Código formateado** (black + isort)
 - ✅ **Sin errores de linting** (ruff + flake8)
 - ✅ **Type hints completos** (mypy strict)
@@ -418,37 +545,6 @@ refactor: restructure configuration loader
 test: add tests for escalation policies
 chore: update dependencies
 ```
-
-## 🛣️ Roadmap
-
-### ✅ Fase 1: Fundamentos (Completado)
-- [x] Esquemas de configuración Pydantic
-- [x] Cargador de configuración YAML
-- [x] Modelos de estado conversacional
-- [x] Store thread-safe para estado
-- [x] Pre-commit hooks completos
-- [x] Coverage >98%
-
-### 🚧 Fase 2: Core del Agente (En Progreso)
-- [ ] Integración LangChain LLM Provider
-- [ ] Lógica básica del agente
-- [ ] Aplicación FastAPI
-- [ ] Endpoints REST API
-- [ ] Soporte WebSocket
-
-### 🔮 Fase 3: Características Avanzadas
-- [ ] Implementación de políticas de escalación
-- [ ] Integración con Redis para producción
-- [ ] Monitoreo con LangSmith
-- [ ] Métricas y observabilidad
-- [ ] Interfaz CLI interactiva
-
-### 📦 Fase 4: Deployment
-- [ ] Docker/Docker Compose
-- [ ] GitHub Actions CI/CD
-- [ ] SonarCloud integración
-- [ ] Documentación API (Swagger)
-- [ ] Guías de deployment
 
 ## 🐛 Troubleshooting
 

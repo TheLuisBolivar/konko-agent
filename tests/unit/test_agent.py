@@ -311,9 +311,13 @@ class TestProcessMessage:
         agent = ConversationalAgent(basic_config, store, llm_provider=mock_llm_provider)
         state = agent.start_conversation()
 
-        # Mock: first call extracts value, second generates response
+        # Graph flow: check_off_topic (LLM), extract_field (LLM), prompt_next (LLM)
         mock_llm_provider.ainvoke = AsyncMock(
-            side_effect=["John Doe", "Great! What's your email address?"]
+            side_effect=[
+                "ON_TOPIC",  # off-topic check
+                "John Doe",  # extract field
+                "Great! What's your email address?",  # prompt next
+            ]
         )
 
         response, updated_state = await agent.process_message(state, "My name is John Doe")

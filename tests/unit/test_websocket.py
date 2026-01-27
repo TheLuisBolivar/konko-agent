@@ -175,12 +175,16 @@ class TestWebSocketEndpoint:
         """Test complete conversation via WebSocket."""
         app = create_app(config=basic_config)
         app_state.agent._llm_provider = mock_llm_provider
+        # Graph flow: for each message - check_off_topic (LLM), extract_field (LLM),
+        #             then prompt_next or complete (LLM)
         mock_llm_provider.ainvoke = AsyncMock(
             side_effect=[
-                "John Doe",
-                "What's your email?",
-                "john@example.com",
-                "Thank you!",
+                "ON_TOPIC",  # off-topic check for name message
+                "John Doe",  # extract name
+                "What's your email?",  # prompt for email
+                "ON_TOPIC",  # off-topic check for email message
+                "john@example.com",  # extract email
+                "Thank you!",  # completion
             ]
         )
         client = TestClient(app)

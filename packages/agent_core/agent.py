@@ -2,14 +2,23 @@
 
 This module provides the main agent logic for conducting conversations,
 collecting information, and managing the conversation flow.
+
+Uses LangGraph state machine for better flow control, correction handling,
+and off-topic detection.
 """
 
-from typing import Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from agent_config import AgentConfig, FieldConfig
 from agent_runtime import ConversationState, MessageRole, StateStore
 
+from .escalation import EscalationEngine, EscalationResult
+from .graph import create_conversation_graph
+from .graph.state import create_initial_state
 from .llm_provider import LLMProvider, LLMProviderError
+
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph  # type: ignore[import-not-found]
 
 
 class AgentError(Exception):
@@ -19,7 +28,14 @@ class AgentError(Exception):
 
 
 class ConversationalAgent:
-    """Main conversational agent that manages dialogue and field collection."""
+    """Main conversational agent that manages dialogue and field collection.
+
+    Uses a LangGraph state machine for conversation flow control, supporting:
+    - Escalation detection via configurable policies
+    - Correction handling for user-provided value corrections
+    - Off-topic detection and redirect
+    - Field extraction and validation
+    """
 
     def __init__(
         self,
@@ -37,6 +53,8 @@ class ConversationalAgent:
         self.config = config
         self.store = store
         self._llm_provider = llm_provider
+        self._escalation_engine: Optional[EscalationEngine] = None
+        self._graph: Optional[CompiledStateGraph] = None
 
     @property
     def llm_provider(self) -> LLMProvider:
@@ -48,6 +66,17 @@ class ConversationalAgent:
         if self._llm_provider is None:
             self._llm_provider = LLMProvider(self.config.llm)
         return self._llm_provider
+
+    @property
+    def escalation_engine(self) -> EscalationEngine:
+        """Get or create the escalation engine.
+
+        Returns:
+            Escalation engine instance
+        """
+        if self._escalation_engine is None:
+            self._escalation_engine = EscalationEngine(self.config, self.llm_provider)
+        return self._escalation_engine
 
     def start_conversation(self) -> ConversationState:
         """Start a new conversation and return the initial state.
@@ -260,10 +289,57 @@ Response:"""
 
         return bool(re.match(pattern, value))
 
+    async def _handle_escalation(
+        self, state: ConversationState, result: EscalationResult
+    ) -> tuple[str, ConversationState]:
+        """Handle an escalation result by marking state and generating response.
+
+        Args:
+            state: Current conversation state
+            result: Escalation result that triggered
+
+        Returns:
+            Tuple of (escalation response, updated state)
+        """
+        # Mark the conversation as escalated
+        state.mark_escalated(result.reason, result.policy_id)
+
+        # Generate an appropriate escalation message
+        escalation_message = (
+            "I understand you'd like to speak with a human agent. "
+            "I'm connecting you now. Thank you for your patience."
+        )
+
+        # Add the escalation message to state
+        state.add_message(MessageRole.AGENT, escalation_message)
+
+        # Update state in store
+        self.store.update(state)
+
+        return escalation_message, state
+
+    @property
+    def graph(self) -> "CompiledStateGraph":
+        """Get or create the conversation graph.
+
+        Returns:
+            Compiled LangGraph state machine
+        """
+        if self._graph is None:
+            self._graph = create_conversation_graph(self)
+        return self._graph
+
     async def process_message(
         self, state: ConversationState, user_message: str
     ) -> tuple[str, ConversationState]:
-        """Process a user message and generate a response.
+        """Process a user message and generate a response using the LangGraph state machine.
+
+        The graph handles:
+        - Escalation checking via EscalationEngine
+        - Correction detection ("No, my email is...")
+        - Off-topic detection and redirect
+        - Field extraction and validation
+        - Completion when all fields are collected
 
         Args:
             state: Current conversation state
@@ -279,47 +355,23 @@ Response:"""
             # Add user message to state
             state.add_message(MessageRole.USER, user_message)
 
-            # Get next field to collect
-            next_field = self.get_next_field_to_collect(state)
+            # Create initial graph state
+            graph_state = create_initial_state(state, user_message)
 
-            if next_field:
-                # Try to extract field value from user message
-                extraction_prompt = self._build_extraction_prompt(next_field, user_message, state)
-                extracted_value = await self.llm_provider.ainvoke(extraction_prompt)
-                extracted_value = extracted_value.strip()
+            # Execute the graph
+            result: dict[str, Any] = await self.graph.ainvoke(graph_state)
 
-                # Validate and store if valid
-                if self._validate_field_value(next_field, extracted_value):
-                    state.update_field_value(next_field.name, extracted_value, True)
-
-                # Check if there are more fields to collect
-                next_field = self.get_next_field_to_collect(state)
-
-            if next_field:
-                # Ask for next field
-                field_prompt = self._build_field_prompt(next_field, state)
-                response = await self.llm_provider.ainvoke(field_prompt)
-            else:
-                # All fields collected - generate completion message
-                collected_data = state.get_collected_data()
-                completion_prompt = f"""{self._build_system_prompt()}
-
-All required information has been collected:
-{collected_data}
-
-Generate a brief, friendly thank you message confirming the information was received.
-Keep it short (1-2 sentences)."""
-
-                response = await self.llm_provider.ainvoke(completion_prompt)
-                state.mark_completed()
+            # Extract the updated conversation state and response
+            updated_state: ConversationState = result["conversation"]
+            response: str = result["response"]
 
             # Add assistant response to state
-            state.add_message(MessageRole.AGENT, response)
+            updated_state.add_message(MessageRole.AGENT, response)
 
             # Update state in store
-            self.store.update(state)
+            self.store.update(updated_state)
 
-            return response, state
+            return response, updated_state
 
         except LLMProviderError as e:
             raise AgentError(f"LLM error: {str(e)}") from e
