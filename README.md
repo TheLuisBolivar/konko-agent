@@ -2,8 +2,11 @@
 
 Un agente conversacional configurable construido con LangChain, LangGraph y FastAPI para recolectar información de usuarios mediante diálogos naturales.
 
-[![Tests](https://img.shields.io/badge/tests-264%20passing-success)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage->95%25-brightgreen)](htmlcov/index.html)
+[![CI](https://github.com/TheLuisBolivar/konko-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/TheLuisBolivar/konko-agent/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheLuisBolivar_konko-agent&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheLuisBolivar_konko-agent)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=TheLuisBolivar_konko-agent&metric=coverage)](https://sonarcloud.io/summary/new_code?id=TheLuisBolivar_konko-agent)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=TheLuisBolivar_konko-agent&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=TheLuisBolivar_konko-agent)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=TheLuisBolivar_konko-agent&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=TheLuisBolivar_konko-agent)
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](pyproject.toml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -91,6 +94,24 @@ El comando `make setup` instala automáticamente:
 - Ambiente virtual Python
 - Todas las dependencias (producción + desarrollo)
 - Pre-commit git hooks (formateo, linting, tests, seguridad)
+
+### Docker
+
+```bash
+# Opción 1: Usar imagen de DockerHub
+docker pull theluisbolivar/konko-agent:latest
+docker run -p 8000:8000 -e OPENAI_API_KEY=$OPENAI_API_KEY theluisbolivar/konko-agent:latest
+
+# Opción 2: Build local
+docker build -t konko-agent .
+docker run -p 8000:8000 -e OPENAI_API_KEY=$OPENAI_API_KEY konko-agent
+
+# Opción 3: Docker Compose
+docker-compose up konko-agent
+
+# Desarrollo con hot reload
+docker-compose --profile dev up konko-agent-dev
+```
 
 ## 🏃 Inicio Rápido
 
@@ -589,6 +610,33 @@ pip install types-PyYAML types-redis
 # Verificar tipos
 mypy packages/
 ```
+
+## 📊 Static Code Analysis (SonarCloud)
+
+Este proyecto usa **SonarCloud** para análisis estático de código gratuito.
+
+### Ver Resultados
+
+Los resultados del análisis están disponibles públicamente en:
+
+👉 **[SonarCloud Dashboard](https://sonarcloud.io/summary/new_code?id=TheLuisBolivar_konko-agent)**
+
+### Métricas Analizadas
+
+| Métrica | Descripción |
+|---------|-------------|
+| **Quality Gate** | Estado general de calidad del código |
+| **Coverage** | Cobertura de tests (>95%) |
+| **Maintainability** | Complejidad y deuda técnica |
+| **Reliability** | Bugs y problemas de fiabilidad |
+| **Security** | Vulnerabilidades y hotspots |
+| **Duplications** | Código duplicado |
+
+### Configurar SonarCloud (Para Forks)
+
+1. Importa el proyecto en [sonarcloud.io](https://sonarcloud.io)
+2. Agrega el secret `SONAR_TOKEN` en GitHub Actions
+3. El análisis se ejecutará automáticamente en cada PR
 
 ## 📞 Soporte
 
