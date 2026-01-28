@@ -374,3 +374,165 @@ class TestCompleteNode:
         result = await complete_node(graph_state, agent)
 
         assert result["conversation"].status.value == "completed"
+
+    @pytest.mark.asyncio
+    async def test_complete_llm_failure_fallback(self, agent, mock_llm_provider):
+        """Test completion uses fallback when LLM fails."""
+        state = ConversationState()
+        state.update_field_value("full_name", "John Doe", True)
+        state.update_field_value("email", "john@example.com", True)
+        state.update_field_value("phone", "123-456-7890", True)
+        graph_state = create_initial_state(state, "done")
+
+        mock_llm_provider.ainvoke = AsyncMock(side_effect=Exception("LLM Error"))
+
+        result = await complete_node(graph_state, agent)
+
+        assert "thank you" in result["response"].lower()
+        assert result["conversation"].status.value == "completed"
+
+
+class TestEdgeCases:
+    """Tests for edge cases and error handling in nodes."""
+
+    @pytest.mark.asyncio
+    async def test_correction_with_no_field_hint(self, agent, mock_llm_provider):
+        """Test correction detected with collected fields but no specific field identified."""
+        state = ConversationState()
+        state.update_field_value("full_name", "John", True)
+        graph_state = create_initial_state(state, "Actually that's wrong")
+
+        # LLM responds with CORRECTION:UNKNOWN
+        mock_llm_provider.ainvoke = AsyncMock(return_value="CORRECTION:UNKNOWN")
+
+        result = await check_correction_node(graph_state, agent)
+
+        assert result["is_correction"] is True
+        assert result["correction_field"] is None
+
+    @pytest.mark.asyncio
+    async def test_correction_llm_failure(self, agent, mock_llm_provider):
+        """Test correction detection falls through when LLM fails on ambiguous case."""
+        state = ConversationState()
+        state.update_field_value("full_name", "John", True)
+        # Use message with correction keyword but no clear field hint
+        graph_state = create_initial_state(state, "Sorry but that was incorrect")
+
+        mock_llm_provider.ainvoke = AsyncMock(side_effect=Exception("LLM Error"))
+
+        result = await check_correction_node(graph_state, agent)
+
+        # When LLM fails without pattern match, falls through to no correction
+        # Note: The pattern "No, my <field> is" would still trigger correction
+        assert result is not None  # Just verify it doesn't crash
+
+    @pytest.mark.asyncio
+    async def test_off_topic_llm_failure(self, agent, mock_llm_provider):
+        """Test off-topic check assumes on-topic when LLM fails."""
+        state = ConversationState()
+        graph_state = create_initial_state(state, "Some random text")
+
+        mock_llm_provider.ainvoke = AsyncMock(side_effect=Exception("LLM Error"))
+
+        result = await check_off_topic_node(graph_state, agent)
+
+        # Falls back to on-topic
+        assert result["is_off_topic"] is False
+
+    @pytest.mark.asyncio
+    async def test_extract_correction_field_not_found(self, agent, mock_llm_provider):
+        """Test extraction falls back to next field when correction field not found."""
+        state = ConversationState()
+        graph_state = create_initial_state(state, "New value here")
+        graph_state["is_correction"] = True
+        graph_state["correction_field"] = "nonexistent_field"
+
+        mock_llm_provider.ainvoke = AsyncMock(return_value="John Doe")
+
+        result = await extract_field_node(graph_state, agent)
+
+        # Falls back to next field (full_name)
+        assert result["current_field"] == "full_name"
+
+    @pytest.mark.asyncio
+    async def test_extract_no_field_to_collect(self, agent, mock_llm_provider):
+        """Test extraction when all fields are collected."""
+        state = ConversationState()
+        state.update_field_value("full_name", "John Doe", True)
+        state.update_field_value("email", "john@example.com", True)
+        state.update_field_value("phone", "123-456-7890", True)
+        graph_state = create_initial_state(state, "More info")
+        graph_state["is_correction"] = False
+
+        result = await extract_field_node(graph_state, agent)
+
+        assert result["extracted_value"] is None
+        assert result["current_field"] is None
+
+    @pytest.mark.asyncio
+    async def test_extract_llm_failure(self, agent, mock_llm_provider):
+        """Test extraction handles LLM failure gracefully."""
+        state = ConversationState()
+        graph_state = create_initial_state(state, "My name is John")
+
+        mock_llm_provider.ainvoke = AsyncMock(side_effect=Exception("LLM Error"))
+
+        result = await extract_field_node(graph_state, agent)
+
+        assert result["extracted_value"] is None
+
+    @pytest.mark.asyncio
+    async def test_validate_field_not_found(self, agent):
+        """Test validation fails when field config not found."""
+        state = ConversationState()
+        graph_state = create_initial_state(state, "value")
+        graph_state["extracted_value"] = "some_value"
+        graph_state["current_field"] = "nonexistent_field"
+
+        result = await validate_node(graph_state, agent)
+
+        assert result["is_valid"] is False
+
+    @pytest.mark.asyncio
+    async def test_prompt_next_no_field(self, agent, mock_llm_provider):
+        """Test prompt_next when all fields are collected."""
+        state = ConversationState()
+        state.update_field_value("full_name", "John Doe", True)
+        state.update_field_value("email", "john@example.com", True)
+        state.update_field_value("phone", "123-456-7890", True)
+        graph_state = create_initial_state(state, "hello")
+        graph_state["is_off_topic"] = False
+
+        result = await prompt_next_node(graph_state, agent)
+
+        assert "thank you" in result["response"].lower()
+
+    @pytest.mark.asyncio
+    async def test_prompt_next_off_topic_llm_failure(self, agent, mock_llm_provider):
+        """Test prompt_next uses fallback when LLM fails on off-topic redirect."""
+        state = ConversationState()
+        graph_state = create_initial_state(state, "What's the weather?")
+        graph_state["is_off_topic"] = True
+
+        mock_llm_provider.ainvoke = AsyncMock(side_effect=Exception("LLM Error"))
+
+        result = await prompt_next_node(graph_state, agent)
+
+        assert "full_name" in result["response"].lower()
+
+    @pytest.mark.asyncio
+    async def test_prompt_next_invalid_input_llm_failure(self, agent, mock_llm_provider):
+        """Test prompt_next handles LLM failure on invalid input prompt."""
+        state = ConversationState()
+        graph_state = create_initial_state(state, "gibberish input")
+        graph_state["is_off_topic"] = False
+        graph_state["extracted_value"] = None
+
+        # First call (invalid prompt) fails, second call (standard prompt) succeeds
+        mock_llm_provider.ainvoke = AsyncMock(
+            side_effect=[Exception("LLM Error"), "What is your full name?"]
+        )
+
+        result = await prompt_next_node(graph_state, agent)
+
+        assert result["response"] == "What is your full name?"

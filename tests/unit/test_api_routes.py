@@ -207,6 +207,94 @@ class TestDeleteConversation:
         assert response.status_code == 404
 
 
+class TestErrorHandling:
+    """Tests for error handling in routes."""
+
+    def test_send_message_store_not_initialized(self, basic_config, reset_app_state):
+        """Test sending message when store is not initialized."""
+        app = create_app(config=basic_config)
+        # Force store to be None
+        app_state.store = None
+        client = TestClient(app)
+
+        response = client.post(
+            "/conversations/any-session/messages",
+            json={"content": "Hello"},
+        )
+
+        assert response.status_code == 503
+        assert "store" in response.json()["detail"].lower()
+
+    def test_get_conversation_store_not_initialized(self, basic_config, reset_app_state):
+        """Test getting conversation when store is not initialized."""
+        app = create_app(config=basic_config)
+        app_state.store = None
+        client = TestClient(app)
+
+        response = client.get("/conversations/any-session")
+
+        assert response.status_code == 503
+        assert "store" in response.json()["detail"].lower()
+
+    def test_delete_conversation_store_not_initialized(self, basic_config, reset_app_state):
+        """Test deleting conversation when store is not initialized."""
+        app = create_app(config=basic_config)
+        app_state.store = None
+        client = TestClient(app)
+
+        response = client.delete("/conversations/any-session")
+
+        assert response.status_code == 503
+        assert "store" in response.json()["detail"].lower()
+
+    def test_send_message_agent_error(self, basic_config, mock_llm_provider, reset_app_state):
+        """Test handling AgentError in send_message."""
+        from unittest.mock import patch
+
+        from agent_core import AgentError
+
+        app = create_app(config=basic_config)
+        client = TestClient(app)
+
+        # Start conversation
+        start_response = client.post("/conversations")
+        session_id = start_response.json()["session_id"]
+
+        # Mock process_message to raise AgentError
+        with patch.object(
+            app_state.agent, "process_message", side_effect=AgentError("Test agent error")
+        ):
+            response = client.post(
+                f"/conversations/{session_id}/messages",
+                json={"content": "Hello"},
+            )
+
+        assert response.status_code == 500
+        assert "test agent error" in response.json()["detail"].lower()
+
+    def test_send_message_generic_exception(self, basic_config, mock_llm_provider, reset_app_state):
+        """Test handling generic exception in send_message."""
+        from unittest.mock import patch
+
+        app = create_app(config=basic_config)
+        client = TestClient(app, raise_server_exceptions=False)
+
+        # Start conversation
+        start_response = client.post("/conversations")
+        session_id = start_response.json()["session_id"]
+
+        # Mock process_message to raise generic exception
+        with patch.object(
+            app_state.agent, "process_message", side_effect=RuntimeError("Unexpected error")
+        ):
+            response = client.post(
+                f"/conversations/{session_id}/messages",
+                json={"content": "Hello"},
+            )
+
+        assert response.status_code == 500
+
+
 class TestConversationFlow:
     """Integration tests for full conversation flow."""
 
