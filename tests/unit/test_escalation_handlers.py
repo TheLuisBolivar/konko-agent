@@ -427,6 +427,35 @@ class TestSentimentPolicyHandler:
         assert result is not None
         assert result.confidence == 1.0
 
+    @pytest.mark.asyncio
+    async def test_sentiment_with_conversation_history(self, mock_llm_provider):
+        """Test sentiment analysis includes conversation history."""
+        from agent_runtime import MessageRole
+
+        mock_llm_provider.ainvoke = AsyncMock(return_value="0.9")
+        handler = SentimentPolicyHandler(llm_provider=mock_llm_provider)
+        config = {"threshold": 0.7, "include_history": True}
+
+        # Create state with message history
+        state = ConversationState()
+        state.add_message(MessageRole.AGENT, "Hello, how can I help?")
+        state.add_message(MessageRole.USER, "I've been waiting forever")
+        state.add_message(MessageRole.AGENT, "I apologize for the wait")
+
+        result = await handler.evaluate(
+            state=state,
+            user_message="This is unacceptable!",
+            config=config,
+            policy_id="test_policy_4",
+            reason="Negative sentiment detected",
+        )
+
+        assert result is not None
+        assert result.should_escalate is True
+        # Verify the prompt included context (check the call)
+        call_args = mock_llm_provider.ainvoke.call_args[0][0]
+        assert "context" in call_args.lower() or "user:" in call_args.lower()
+
 
 class TestLLMIntentPolicyHandler:
     """Tests for LLMIntentPolicyHandler."""
