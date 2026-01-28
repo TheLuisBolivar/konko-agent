@@ -225,3 +225,12 @@ test-flow: ## Run a test conversation flow
 		-d '{"content": "test@example.com"}' | jq '.response' && \
 	echo "" && \
 	echo "$(GREEN)✓ Test flow complete! Check Grafana for metrics.$(NC)"
+
+test-ws: ## Start interactive WebSocket conversation (requires wscat)
+	@echo "$(BLUE)Starting WebSocket conversation...$(NC)"
+	@which wscat > /dev/null || (echo "$(YELLOW)wscat not found. Install with: npm install -g wscat$(NC)" && exit 1)
+	@echo "$(GREEN)Connected! Send messages as JSON:$(NC)"
+	@echo '  {"type": "message", "content": "My name is Luis"}'
+	@echo '  {"type": "message", "content": "luis@example.com"}'
+	@echo ""
+	@wscat -c ws://localhost:8000/ws
