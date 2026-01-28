@@ -12,6 +12,7 @@ from agent_core import ConversationalAgent
 from agent_runtime import StateStore
 from fastapi import FastAPI  # type: ignore[import-not-found]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-not-found]
+from prometheus_client import make_asgi_app  # type: ignore[import-not-found]
 
 
 class AppState:
@@ -102,6 +103,10 @@ def create_app(
 
     # Register routes
     _register_routes(app)
+
+    # Mount Prometheus metrics endpoint
+    metrics_app = make_asgi_app()
+    app.mount("/metrics", metrics_app)
 
     return app
 

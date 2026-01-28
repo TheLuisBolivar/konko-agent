@@ -1,6 +1,6 @@
 # Konko AI Conversational Agent
 
-Un agente conversacional configurable construido con LangChain, LangGraph y FastAPI para recolectar información de usuarios mediante diálogos naturales.
+A configurable conversational agent built with LangChain, LangGraph, and FastAPI for collecting user information through natural dialogue.
 
 [![CI](https://github.com/TheLuisBolivar/konko-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/TheLuisBolivar/konko-agent/actions/workflows/ci.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=TheLuisBolivar_konko-agent&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=TheLuisBolivar_konko-agent)
@@ -10,24 +10,85 @@ Un agente conversacional configurable construido con LangChain, LangGraph y Fast
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](pyproject.toml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-## 🚀 Características
+## ⚡ Quick Local Deploy
 
-- ✅ **LangGraph State Machine** para control de flujo conversacional
-- ✅ **Configuración basada en YAML** con validación Pydantic
-- ✅ **Gestión de estado** thread-safe con soporte para Redis
-- ✅ **Múltiples políticas de escalación** (keyword, timeout, sentiment, LLM intent)
-- ✅ **Detección de correcciones** ("No, mi email es...")
-- ✅ **Detección de off-topic** y redirección automática
-- ✅ **Dual interface**: REST API + WebSocket y CLI
-- ✅ **Type-safe** con mypy strict mode (100% type coverage)
-- ✅ **Alta cobertura de tests** (264 tests passing)
-- ✅ **Calidad de código garantizada** con pre-commit hooks
-- ✅ **Análisis de seguridad** automático con Bandit
-- ✅ **Complejidad controlada** (<10 por función)
+### Prerequisites
+- Docker & Docker Compose
+- OpenAI API Key
+- (Optional) LangSmith API Key for tracing
 
-## 🔄 Arquitectura del Flujo Conversacional
+### 1. Setup
 
-El agente utiliza una **state machine basada en LangGraph** para controlar el flujo de la conversación:
+```bash
+# Clone and enter project
+git clone https://github.com/TheLuisBolivar/konko-agent.git
+cd konko-agent
+
+# Copy and configure environment
+cp .env.example .env
+# Edit .env with your API keys:
+#   OPENAI_API_KEY=sk-proj-...
+#   LANGCHAIN_TRACING_V2=true        # Enable LangSmith
+#   LANGCHAIN_API_KEY=lsv2_pt_...    # Your LangSmith key
+```
+
+### 2. Start Everything
+
+```bash
+make up
+```
+
+This starts: **Agent API** + **Prometheus** + **Grafana**
+
+### 3. Quick Test
+
+```bash
+# Run a test conversation
+make test-flow
+
+# Check metrics
+make metrics
+
+# Check health of all services
+make health
+```
+
+### 4. Platform URLs
+
+| Platform | URL | Credentials |
+|----------|-----|-------------|
+| **API Docs (Swagger)** | http://localhost:8000/docs | - |
+| **Metrics Endpoint** | http://localhost:8000/metrics/ | - |
+| **Prometheus** | http://localhost:9090 | - |
+| **Grafana Dashboard** | http://localhost:3000 | admin / admin |
+| **LangSmith Traces** | https://smith.langchain.com | Your account |
+
+### 5. Stop
+
+```bash
+make down
+```
+
+---
+
+## 🚀 Features
+
+- ✅ **LangGraph State Machine** for conversational flow control
+- ✅ **YAML-based configuration** with Pydantic validation
+- ✅ **State management** thread-safe with Redis support
+- ✅ **Multiple escalation policies** (keyword, timeout, sentiment, LLM intent)
+- ✅ **Correction detection** ("No, my email is...")
+- ✅ **Off-topic detection** and automatic redirect
+- ✅ **Dual interface**: REST API + WebSocket and CLI
+- ✅ **Type-safe** with mypy strict mode (100% type coverage)
+- ✅ **High test coverage** (264 tests passing)
+- ✅ **Code quality guaranteed** with pre-commit hooks
+- ✅ **Automatic security analysis** with Bandit
+- ✅ **Controlled complexity** (<10 per function)
+
+## 🔄 Conversation Flow Architecture
+
+The agent uses a **LangGraph-based state machine** to control the conversation flow:
 
 ```
 START → check_escalation
@@ -50,95 +111,95 @@ prompt_next   complete
    END           END
 ```
 
-### Nodos del Grafo
+### Graph Nodes
 
-| Nodo | Descripción |
+| Node | Description |
 |------|-------------|
-| `check_escalation` | Evalúa políticas de escalación (keyword, timeout, sentiment, etc.) |
-| `check_correction` | Detecta correcciones del usuario ("No, mi email es...") |
-| `check_off_topic` | Identifica respuestas fuera de tema |
-| `extract_field` | Extrae valores de campos del mensaje del usuario |
-| `validate` | Valida el valor extraído según el tipo de campo |
-| `prompt_next` | Genera prompt para el siguiente campo o re-pregunta |
-| `escalate` | Maneja la escalación a agente humano |
-| `complete` | Genera mensaje de completitud cuando todos los campos están recolectados |
+| `check_escalation` | Evaluates escalation policies (keyword, timeout, sentiment, etc.) |
+| `check_correction` | Detects user corrections ("No, my email is...") |
+| `check_off_topic` | Identifies off-topic responses |
+| `extract_field` | Extracts field values from user message |
+| `validate` | Validates extracted value against field type |
+| `prompt_next` | Generates prompt for next field or re-asks |
+| `escalate` | Handles escalation to human agent |
+| `complete` | Generates completion message when all fields are collected |
 
-Para más detalles, ver [docs/CONVERSATION_FLOW.md](docs/CONVERSATION_FLOW.md)
+For more details, see [docs/CONVERSATION_FLOW.md](docs/CONVERSATION_FLOW.md)
 
-## 📦 Instalación
+## 📦 Installation
 
-### Requisitos
+### Requirements
 
 - Python 3.10+
 - pip
 - git
 
-### Setup Rápido
+### Quick Setup
 
 ```bash
-# Clonar el repositorio
+# Clone the repository
 git clone https://github.com/TheLuisBolivar/konko-agent.git
 cd konko-agent
 
-# Setup completo (venv, deps, git hooks)
+# Complete setup (venv, deps, git hooks)
 make setup
 
-# Activar ambiente virtual
+# Activate virtual environment
 source .venv/bin/activate
 
-# Verificar instalación
+# Verify installation
 make verify
 ```
 
-El comando `make setup` instala automáticamente:
-- Ambiente virtual Python
-- Todas las dependencias (producción + desarrollo)
-- Pre-commit git hooks (formateo, linting, tests, seguridad)
+The `make setup` command automatically installs:
+- Python virtual environment
+- All dependencies (production + development)
+- Pre-commit git hooks (formatting, linting, tests, security)
 
 ### Docker
 
 ```bash
-# Opción 1: Usar imagen de DockerHub
+# Option 1: Use DockerHub image
 docker pull theluisbolivar/konko-agent:latest
 docker run -p 8000:8000 -e OPENAI_API_KEY=$OPENAI_API_KEY theluisbolivar/konko-agent:latest
 
-# Opción 2: Build local
+# Option 2: Local build
 docker build -t konko-agent .
 docker run -p 8000:8000 -e OPENAI_API_KEY=$OPENAI_API_KEY konko-agent
 
-# Opción 3: Docker Compose
+# Option 3: Docker Compose
 docker-compose up konko-agent
 
-# Desarrollo con hot reload
+# Development with hot reload
 docker-compose --profile dev up konko-agent-dev
 ```
 
-## 🏃 Inicio Rápido
+## 🏃 Quick Start
 
-### 1. Probar configuración básica
+### 1. Test basic configuration
 
 ```bash
-# Cargar y validar configuración
+# Load and validate configuration
 python -c "
 from agent_config import load_config_from_yaml
 config = load_config_from_yaml('configs/basic_agent.yaml')
-print(f'✓ Config cargada: {len(config.fields)} campos')
-print(f'  Personalidad: {config.personality.tone}')
-print(f'  Saludo: {config.greeting}')
+print(f'✓ Config loaded: {len(config.fields)} fields')
+print(f'  Personality: {config.personality.tone}')
+print(f'  Greeting: {config.greeting}')
 "
 ```
 
-**Salida esperada:**
+**Expected output:**
 ```
-✓ Config cargada: 3 campos
-  Personalidad: Tone.PROFESSIONAL
-  Saludo: Hello! I'm here to help collect some information from you today.
+✓ Config loaded: 3 fields
+  Personality: Tone.PROFESSIONAL
+  Greeting: Hello! I'm here to help collect some information from you today.
 ```
 
-### 2. Probar gestión de estado
+### 2. Test state management
 
 ```bash
-# Crear y gestionar conversación
+# Create and manage conversation
 python -c "
 from agent_runtime import ConversationState, get_default_store, MessageRole
 
@@ -146,166 +207,169 @@ store = get_default_store()
 state = ConversationState()
 store.create(state)
 
-state.add_message(MessageRole.AGENT, '¿Cómo te llamas?')
+state.add_message(MessageRole.AGENT, 'What is your name?')
 state.add_message(MessageRole.USER, 'Luis')
 state.update_field_value('name', 'Luis', True)
 
-print(f'✓ Sesión creada: {state.session_id}')
-print(f'  Mensajes: {len(state.messages)}')
-print(f'  Datos recolectados: {state.get_collected_data()}')
+print(f'✓ Session created: {state.session_id}')
+print(f'  Messages: {len(state.messages)}')
+print(f'  Collected data: {state.get_collected_data()}')
 
 store.clear()
 "
 ```
 
-**Salida esperada:**
+**Expected output:**
 ```
-✓ Sesión creada: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-  Mensajes: 2
-  Datos recolectados: {'name': 'Luis'}
+✓ Session created: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  Messages: 2
+  Collected data: {'name': 'Luis'}
 ```
 
-### 3. Ejecutar tests
+### 3. Run tests
 
 ```bash
-# Tests unitarios
+# Unit tests
 make test
 
-# Tests con reporte de coverage
+# Tests with coverage report
 make test-cov
 
-# Ver reporte HTML de coverage
+# View HTML coverage report
 open htmlcov/index.html
 ```
 
-## 🛠️ Desarrollo
+## 🛠️ Development
 
-### Comandos Disponibles
+### Available Commands
 
 ```bash
-make help              # Ver todos los comandos disponibles
-make verify            # Verificar setup y dependencias
-make test              # Ejecutar tests unitarios
-make test-cov          # Tests con coverage report (HTML + terminal)
-make format            # Formatear código (black + isort)
-make lint              # Lint código (ruff + mypy)
-make quality           # ⭐ Ejecutar TODOS los checks de calidad
-make quality-check     # Verificar calidad sin auto-fix (para CI)
-make security          # Ejecutar análisis de seguridad
-make hooks-run         # Ejecutar pre-commit hooks manualmente
-make hooks-install     # Reinstalar git hooks
-make clean             # Limpiar archivos generados
-make status            # Ver status de git y commits recientes
+make help              # Show all available commands
+make verify            # Verify setup and dependencies
+make test              # Run unit tests
+make test-cov          # Tests with coverage report (HTML + terminal)
+make format            # Format code (black + isort)
+make lint              # Lint code (ruff + mypy)
+make quality           # ⭐ Run ALL quality checks
+make quality-check     # Check quality without auto-fix (for CI)
+make security          # Run security analysis
+make hooks-run         # Run pre-commit hooks manually
+make hooks-install     # Reinstall git hooks
+make clean             # Clean generated files
+make status            # Show git status and recent commits
 ```
 
-### Pre-commit Hooks Automáticos
+### Automatic Pre-commit Hooks
 
-Los hooks se ejecutan **automáticamente** al hacer commit/push:
+Hooks run **automatically** on commit/push:
 
-**Al hacer `git commit`:**
-- ✅ Formateo automático (Black, isort)
-- ✅ Linting (Ruff, Flake8 con complejidad)
+**On `git commit`:**
+- ✅ Automatic formatting (Black, isort)
+- ✅ Linting (Ruff, Flake8 with complexity)
 - ✅ Type checking (mypy strict)
 - ✅ Security scan (Bandit)
 - ✅ Docstring validation (pydocstyle)
-- ✅ Tests unitarios rápidos
+- ✅ Quick unit tests
 
-**Al hacer `git push`:**
-- ✅ Todo lo anterior
-- ✅ Tests completos con coverage (mínimo 80%)
+**On `git push`:**
+- ✅ All of the above
+- ✅ Full tests with coverage (minimum 80%)
 
-Ver más detalles en [docs/PRE_COMMIT_HOOKS.md](docs/PRE_COMMIT_HOOKS.md)
+See more details in [docs/PRE_COMMIT_HOOKS.md](docs/PRE_COMMIT_HOOKS.md)
 
-### Workflow de Desarrollo
+### Development Workflow
 
 ```bash
-# 1. Hacer cambios
+# 1. Make changes
 vim packages/agent_config/schemas.py
 
-# 2. Commit (hooks se ejecutan automáticamente)
+# 2. Commit (hooks run automatically)
 git add .
 git commit -m "feat: add new feature"
-# ⬆️ Los hooks verifican calidad automáticamente
+# ⬆️ Hooks verify quality automatically
 
-# 3. Si algo falla, corregir y re-commit
-# Algunos hooks auto-corrigen (black, isort, ruff)
+# 3. If something fails, fix and re-commit
+# Some hooks auto-fix (black, isort, ruff)
 git add .
 git commit -m "feat: add new feature"
 
-# 4. Push (ejecuta tests completos)
+# 4. Push (runs full tests)
 git push origin feature/my-feature
 ```
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 konko-agent/
-├── packages/                    # Código fuente del proyecto
-│   ├── agent_config/           # ✅ Configuración y validación
+├── packages/                    # Project source code
+│   ├── agent_config/           # ✅ Configuration and validation
 │   │   ├── __init__.py
-│   │   ├── schemas.py          # Modelos Pydantic
-│   │   └── loader.py           # Cargador YAML
-│   ├── agent_runtime/          # ✅ Gestión de estado
+│   │   ├── schemas.py          # Pydantic models
+│   │   └── loader.py           # YAML loader
+│   ├── agent_runtime/          # ✅ State management
 │   │   ├── __init__.py
-│   │   ├── state.py            # Modelos de estado
-│   │   └── store.py            # Store thread-safe
-│   └── agent_core/             # ✅ Lógica del agente
+│   │   ├── state.py            # State models
+│   │   └── store.py            # Thread-safe store
+│   └── agent_core/             # ✅ Agent logic
 │       ├── __init__.py
-│       ├── agent.py            # Agente principal
-│       ├── llm_provider.py     # Proveedor de LLM
-│       ├── escalation/         # Motor de escalación
+│       ├── agent.py            # Main agent
+│       ├── llm_provider.py     # LLM provider
+│       ├── metrics.py          # Prometheus metrics
+│       ├── escalation/         # Escalation engine
 │       │   ├── engine.py
-│       │   ├── handlers/       # Handlers de políticas
+│       │   ├── handlers/       # Policy handlers
 │       │   └── ...
 │       └── graph/              # ✅ LangGraph State Machine
 │           ├── __init__.py
 │           ├── state.py        # GraphState TypedDict
-│           ├── nodes.py        # 8 funciones de nodo
-│           ├── edges.py        # Funciones de routing
-│           └── builder.py      # Constructor del grafo
+│           ├── nodes.py        # 8 node functions
+│           ├── edges.py        # Routing functions
+│           └── builder.py      # Graph builder
 │
-├── configs/                     # Configuraciones de ejemplo
-│   ├── basic_agent.yaml        # Configuración básica (3 campos)
-│   └── advanced_agent.yaml     # Configuración avanzada (7 campos)
+├── configs/                     # Example configurations
+│   ├── basic_agent.yaml        # Basic config (3 fields)
+│   ├── advanced_agent.yaml     # Advanced config (7 fields)
+│   ├── prometheus.yml          # Prometheus scrape config
+│   └── grafana/                # Grafana provisioning
 │
-├── tests/                       # Suite de tests (264 tests)
+├── tests/                       # Test suite (264 tests)
 │   └── unit/
 │       ├── test_agent.py
 │       ├── test_config_*.py
 │       ├── test_state.py
 │       ├── test_store.py
 │       ├── test_escalation_*.py
-│       ├── test_graph_nodes.py      # Tests de nodos
-│       ├── test_graph_edges.py      # Tests de routing
-│       └── test_graph_integration.py # Tests de flujos
+│       ├── test_graph_nodes.py      # Node tests
+│       ├── test_graph_edges.py      # Routing tests
+│       └── test_graph_integration.py # Flow tests
 │
-├── docs/                        # Documentación
-│   ├── CONVERSATION_FLOW.md    # Arquitectura del flujo conversacional
-│   ├── PRE_COMMIT_HOOKS.md     # Guía de git hooks
-│   └── CODE_QUALITY_TOOLS.md   # Herramientas de calidad
+├── docs/                        # Documentation
+│   ├── CONVERSATION_FLOW.md    # Conversation flow architecture
+│   ├── PRE_COMMIT_HOOKS.md     # Git hooks guide
+│   └── CODE_QUALITY_TOOLS.md   # Quality tools
 │
-├── scripts/                     # Scripts de utilidad
-│   ├── verify_setup.py         # Verificación de setup
-│   └── test_progress.sh        # Check de progreso
+├── scripts/                     # Utility scripts
+│   ├── verify_setup.py         # Setup verification
+│   └── test_progress.sh        # Progress check
 │
-├── .pre-commit-config.yaml     # Configuración de hooks
-├── pyproject.toml              # Configuración del proyecto
-├── Makefile                    # Comandos de desarrollo
-└── README.md                   # Este archivo
+├── .pre-commit-config.yaml     # Hooks configuration
+├── pyproject.toml              # Project configuration
+├── Makefile                    # Development commands
+└── README.md                   # This file
 ```
 
-## 📊 Métricas de Calidad
+## 📊 Quality Metrics
 
-| Métrica | Valor | Status |
-|---------|-------|--------|
-| **Tests** | 264/264 pasando | ✅ 100% |
-| **Coverage** | >95% | ✅ Excelente |
-| **Type Coverage** | 100% (mypy strict) | ✅ Perfecto |
-| **Complejidad** | <10 por función | ✅ Bajo |
-| **Seguridad** | 0 vulnerabilidades | ✅ Seguro |
-| **Linting** | 0 errores | ✅ Limpio |
+| Metric | Value | Status |
+|--------|-------|--------|
+| **Tests** | 264/264 passing | ✅ 100% |
+| **Coverage** | >95% | ✅ Excellent |
+| **Type Coverage** | 100% (mypy strict) | ✅ Perfect |
+| **Complexity** | <10 per function | ✅ Low |
+| **Security** | 0 vulnerabilities | ✅ Secure |
+| **Linting** | 0 errors | ✅ Clean |
 
-### Coverage Detallado
+### Detailed Coverage
 
 ```
 Name                                 Stmts   Miss   Cover
@@ -320,9 +384,9 @@ packages/agent_runtime/store.py         72      0 100.00%
 TOTAL                                  283      3  98.94%
 ```
 
-## 🔧 Configuración
+## 🔧 Configuration
 
-### Ejemplo Básico
+### Basic Example
 
 `configs/basic_agent.yaml`:
 
@@ -366,102 +430,103 @@ escalation_policies:
       max_duration_seconds: 600  # 10 minutes
 ```
 
-### Ejemplo Avanzado
+### Advanced Example
 
-Ver `configs/advanced_agent.yaml` para un ejemplo con:
-- 7 campos de diferentes tipos (text, email, phone, url, number, date)
-- 5 políticas de escalación (keyword, timeout, sentiment, llm_intent, completion)
-- Personalidad friendly con emojis habilitados
+See `configs/advanced_agent.yaml` for an example with:
+- 7 fields of different types (text, email, phone, url, number, date)
+- 5 escalation policies (keyword, timeout, sentiment, llm_intent, completion)
+- Friendly personality with emojis enabled
 
-## 🌐 Probar la API
+## 🌐 Testing the API
 
-### Iniciar el Servidor
+### Start the Server
 
 ```bash
-# Activar ambiente y configurar API key
+# Activate environment and set API key
 source .venv/bin/activate
-export OPENAI_API_KEY="sk-tu-api-key"
+export OPENAI_API_KEY="sk-your-api-key"
 
-# Iniciar servidor (puerto 8000)
+# Start server (port 8000)
 python main.py
 ```
 
-### Endpoints Disponibles
+### Available Endpoints
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/conversations` | Iniciar nueva conversación |
-| `POST` | `/conversations/{id}/messages` | Enviar mensaje |
-| `GET` | `/conversations/{id}` | Ver estado de conversación |
-| `DELETE` | `/conversations/{id}` | Eliminar conversación |
-| `WS` | `/ws` | WebSocket para tiempo real |
+| `POST` | `/conversations` | Start new conversation |
+| `POST` | `/conversations/{id}/messages` | Send message |
+| `GET` | `/conversations/{id}` | Get conversation state |
+| `DELETE` | `/conversations/{id}` | Delete conversation |
+| `WS` | `/ws` | WebSocket for real-time |
 | `GET` | `/health` | Health check |
-| `GET` | `/docs` | Swagger UI (documentación interactiva) |
+| `GET` | `/docs` | Swagger UI (interactive docs) |
+| `GET` | `/metrics/` | Prometheus metrics |
 
-### Probar con curl
+### Test with curl
 
 ```bash
-# 1. Iniciar conversación
+# 1. Start conversation
 curl -X POST http://localhost:8000/conversations | jq
 
-# 2. Enviar mensaje (reemplaza SESSION_ID)
+# 2. Send message (replace SESSION_ID)
 curl -X POST "http://localhost:8000/conversations/SESSION_ID/messages" \
   -H "Content-Type: application/json" \
-  -d '{"content": "Mi nombre es Luis"}' | jq
+  -d '{"content": "My name is Luis"}' | jq
 
-# 3. Probar corrección
+# 3. Test correction
 curl -X POST "http://localhost:8000/conversations/SESSION_ID/messages" \
   -H "Content-Type: application/json" \
-  -d '{"content": "No, mi nombre es Luis Bolivar"}' | jq
+  -d '{"content": "No, my name is Luis Bolivar"}' | jq
 
-# 4. Probar off-topic (el agente redirige)
+# 4. Test off-topic (agent redirects)
 curl -X POST "http://localhost:8000/conversations/SESSION_ID/messages" \
   -H "Content-Type: application/json" \
-  -d '{"content": "¿Qué hora es?"}' | jq
+  -d '{"content": "What time is it?"}' | jq
 
-# 5. Ver estado de la conversación
+# 5. Get conversation state
 curl -X GET "http://localhost:8000/conversations/SESSION_ID" | jq
 ```
 
-### Probar con WebSocket
+### Test with WebSocket
 
 ```bash
-# Requiere wscat: npm install -g wscat
+# Requires wscat: npm install -g wscat
 wscat -c ws://localhost:8000/ws
 
-# Una vez conectado, enviar mensajes:
-> {"type": "message", "content": "Mi nombre es Luis"}
-> {"type": "message", "content": "luis@ejemplo.com"}
+# Once connected, send messages:
+> {"type": "message", "content": "My name is Luis"}
+> {"type": "message", "content": "luis@example.com"}
 ```
 
 ### Swagger UI
 
-Abre `http://localhost:8000/docs` en tu navegador para probar la API de forma interactiva.
+Open `http://localhost:8000/docs` in your browser to test the API interactively.
 
 ## 🧪 Testing
 
-### Ejecutar Tests
+### Run Tests
 
 ```bash
-# Todos los tests con output verbose
+# All tests with verbose output
 pytest tests/unit/ -v
 
-# Con coverage detallado
+# With detailed coverage
 pytest tests/unit/ --cov=packages --cov-report=term-missing
 
-# Solo tests específicos
+# Specific tests only
 pytest tests/unit/test_config_schemas.py -v
 
-# Ejecutar un test específico
+# Run a specific test
 pytest tests/unit/test_state.py::TestConversationState::test_add_message -v
 
-# Con warnings desactivados
+# With warnings disabled
 pytest tests/unit/ -v --disable-warnings
 ```
 
-### Escribir Tests
+### Writing Tests
 
-Los tests usan `pytest` y siguen esta estructura:
+Tests use `pytest` and follow this structure:
 
 ```python
 """Tests for my module."""
@@ -484,78 +549,78 @@ class TestMyFeature:
         assert "cannot be empty" in str(exc_info.value)
 ```
 
-## 🔒 Seguridad
+## 🔒 Security
 
-### Análisis Automático
+### Automatic Analysis
 
-- **Bandit**: Escanea código en busca de vulnerabilidades
-- **Pre-commit**: Detecta claves privadas antes de commit
-- **Dependabot** (próximamente): Actualización automática de dependencias
-- **Safety** (recomendado): Escaneo de CVEs en dependencias
+- **Bandit**: Scans code for vulnerabilities
+- **Pre-commit**: Detects private keys before commit
+- **Dependabot** (coming soon): Automatic dependency updates
+- **Safety** (recommended): CVE scanning for dependencies
 
-### Ejecutar Scan Manual
+### Run Manual Scan
 
 ```bash
-# Análisis de seguridad completo
+# Full security analysis
 make security
 
-# Solo Bandit
+# Bandit only
 source .venv/bin/activate
 bandit -r packages/ -c pyproject.toml
 
-# Verificar dependencias (requiere instalar safety)
+# Check dependencies (requires installing safety)
 pip install safety
 safety check
 ```
 
-### Mejores Prácticas
+### Best Practices
 
-- ✅ **No commitear** archivos `.env` (en `.gitignore`)
-- ✅ **No hardcodear** credenciales en código
-- ✅ **Usar variables de entorno** para secretos
-- ✅ **Revisar dependencias** regularmente
-- ✅ **Mantener Python actualizado** (3.10+)
+- ✅ **Don't commit** `.env` files (in `.gitignore`)
+- ✅ **Don't hardcode** credentials in code
+- ✅ **Use environment variables** for secrets
+- ✅ **Review dependencies** regularly
+- ✅ **Keep Python updated** (3.10+)
 
-## 📚 Documentación
+## 📚 Documentation
 
-- **[Conversation Flow](docs/CONVERSATION_FLOW.md)** - Arquitectura del flujo conversacional (LangGraph)
-- **[Pre-commit Hooks](docs/PRE_COMMIT_HOOKS.md)** - Guía completa de git hooks
-- **[Code Quality Tools](docs/CODE_QUALITY_TOOLS.md)** - Herramientas de calidad y recomendaciones
-- **[Implementation Plan](.epsilon/)** - Plan de implementación detallado
+- **[Conversation Flow](docs/CONVERSATION_FLOW.md)** - Conversation flow architecture (LangGraph)
+- **[Pre-commit Hooks](docs/PRE_COMMIT_HOOKS.md)** - Complete git hooks guide
+- **[Code Quality Tools](docs/CODE_QUALITY_TOOLS.md)** - Quality tools and recommendations
+- **[Implementation Plan](.epsilon/)** - Detailed implementation plan
 
-## 🤝 Contribuir
+## 🤝 Contributing
 
-### Requisitos para Pull Requests
+### Pull Request Requirements
 
-Para que un PR sea aceptado debe cumplir:
+For a PR to be accepted it must meet:
 
-- ✅ **Todos los tests pasando** (264/264)
-- ✅ **Coverage >80%** (actualmente >95%)
-- ✅ **Código formateado** (black + isort)
-- ✅ **Sin errores de linting** (ruff + flake8)
-- ✅ **Type hints completos** (mypy strict)
-- ✅ **Docstrings en código público** (Google style)
-- ✅ **Sin vulnerabilidades** de seguridad
-- ✅ **Aprobación de @TheLuisBolivar** (CODEOWNERS)
+- ✅ **All tests passing** (264/264)
+- ✅ **Coverage >80%** (currently >95%)
+- ✅ **Code formatted** (black + isort)
+- ✅ **No linting errors** (ruff + flake8)
+- ✅ **Complete type hints** (mypy strict)
+- ✅ **Docstrings on public code** (Google style)
+- ✅ **No security** vulnerabilities
+- ✅ **Approval from @TheLuisBolivar** (CODEOWNERS)
 
-### Proceso de Contribución
+### Contribution Process
 
-1. **Fork** el proyecto
-2. **Crea** tu feature branch (`git checkout -b feature/amazing-feature`)
-3. **Desarrolla** con los hooks activados (se instalan automáticamente)
-4. **Commit** tus cambios (los hooks verifican calidad)
+1. **Fork** the project
+2. **Create** your feature branch (`git checkout -b feature/amazing-feature`)
+3. **Develop** with hooks enabled (installed automatically)
+4. **Commit** your changes (hooks verify quality)
    ```bash
    git commit -m 'feat: add amazing feature'
    ```
-5. **Push** a la branch (ejecuta tests completos)
+5. **Push** to the branch (runs full tests)
    ```bash
    git push origin feature/amazing-feature
    ```
-6. **Abre** un Pull Request con descripción detallada
+6. **Open** a Pull Request with detailed description
 
-### Convención de Commits
+### Commit Convention
 
-Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```bash
 feat: add new feature
@@ -569,97 +634,97 @@ chore: update dependencies
 
 ## 🐛 Troubleshooting
 
-### "Pre-commit hooks muy lentos"
+### "Pre-commit hooks too slow"
 
-La primera ejecución es lenta (descarga herramientas). Las siguientes son rápidas.
+The first run is slow (downloads tools). Subsequent runs are fast.
 
 ```bash
-# Para commits urgentes (NO RECOMENDADO)
-git commit --no-verify -m "mensaje"
+# For urgent commits (NOT RECOMMENDED)
+git commit --no-verify -m "message"
 ```
 
-### "Tests fallan localmente pero pasaban antes"
+### "Tests fail locally but passed before"
 
 ```bash
-# Reinstalar dependencias
+# Reinstall dependencies
 source .venv/bin/activate
 pip install -e ".[dev]"
 
-# Limpiar caché
+# Clean cache
 make clean
 
-# Re-ejecutar tests
+# Re-run tests
 make test
 ```
 
-### "Coverage bajo después de agregar código"
+### "Low coverage after adding code"
 
 ```bash
-# Ver qué líneas faltan
+# See which lines are missing
 pytest --cov=packages --cov-report=term-missing
 
-# Agregar tests para las líneas faltantes
+# Add tests for missing lines
 ```
 
-### "Mypy reporta errores de tipos"
+### "Mypy reports type errors"
 
 ```bash
-# Instalar tipos faltantes
+# Install missing types
 pip install types-PyYAML types-redis
 
-# Verificar tipos
+# Check types
 mypy packages/
 ```
 
 ## 📊 Static Code Analysis (SonarCloud)
 
-Este proyecto usa **SonarCloud** para análisis estático de código gratuito.
+This project uses **SonarCloud** for free static code analysis.
 
-### Ver Resultados
+### View Results
 
-Los resultados del análisis están disponibles públicamente en:
+Analysis results are publicly available at:
 
 👉 **[SonarCloud Dashboard](https://sonarcloud.io/summary/new_code?id=TheLuisBolivar_konko-agent)**
 
-### Métricas Analizadas
+### Analyzed Metrics
 
-| Métrica | Descripción |
-|---------|-------------|
-| **Quality Gate** | Estado general de calidad del código |
-| **Coverage** | Cobertura de tests (>95%) |
-| **Maintainability** | Complejidad y deuda técnica |
-| **Reliability** | Bugs y problemas de fiabilidad |
-| **Security** | Vulnerabilidades y hotspots |
-| **Duplications** | Código duplicado |
+| Metric | Description |
+|--------|-------------|
+| **Quality Gate** | Overall code quality status |
+| **Coverage** | Test coverage (>95%) |
+| **Maintainability** | Complexity and technical debt |
+| **Reliability** | Bugs and reliability issues |
+| **Security** | Vulnerabilities and hotspots |
+| **Duplications** | Duplicated code |
 
-### Configurar SonarCloud (Para Forks)
+### Configure SonarCloud (For Forks)
 
-1. Importa el proyecto en [sonarcloud.io](https://sonarcloud.io)
-2. Agrega el secret `SONAR_TOKEN` en GitHub Actions
-3. El análisis se ejecutará automáticamente en cada PR
+1. Import the project at [sonarcloud.io](https://sonarcloud.io)
+2. Add the `SONAR_TOKEN` secret in GitHub Actions
+3. Analysis will run automatically on each PR
 
-## 📞 Soporte
+## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/TheLuisBolivar/konko-agent/issues)
-- **Discusiones**: [GitHub Discussions](https://github.com/TheLuisBolivar/konko-agent/discussions)
+- **Discussions**: [GitHub Discussions](https://github.com/TheLuisBolivar/konko-agent/discussions)
 - **Email**: luis@konko.ai
-- **Seguridad**: security@konko.ai
+- **Security**: security@konko.ai
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto es privado y confidencial.
+This project is private and confidential.
 
-## 👥 Equipo
+## 👥 Team
 
 - [@TheLuisBolivar](https://github.com/TheLuisBolivar) - Lead Developer & Code Owner
 
-## 🙏 Agradecimientos
+## 🙏 Acknowledgments
 
-- [LangChain](https://github.com/langchain-ai/langchain) - Framework de LLM
-- [LangGraph](https://github.com/langchain-ai/langgraph) - State machines para LLMs
-- [FastAPI](https://github.com/tiangolo/fastapi) - Framework web moderno
-- [Pydantic](https://github.com/pydantic/pydantic) - Validación de datos
-- [pre-commit](https://pre-commit.com/) - Framework de git hooks
+- [LangChain](https://github.com/langchain-ai/langchain) - LLM Framework
+- [LangGraph](https://github.com/langchain-ai/langgraph) - State machines for LLMs
+- [FastAPI](https://github.com/tiangolo/fastapi) - Modern web framework
+- [Pydantic](https://github.com/pydantic/pydantic) - Data validation
+- [pre-commit](https://pre-commit.com/) - Git hooks framework
 
 ---
 

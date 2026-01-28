@@ -7,6 +7,7 @@ Uses LangGraph state machine for better flow control, correction handling,
 and off-topic detection.
 """
 
+import time
 from typing import TYPE_CHECKING, Any, Optional
 
 from agent_config import AgentConfig, FieldConfig
@@ -16,6 +17,7 @@ from .escalation import EscalationEngine, EscalationResult
 from .graph import create_conversation_graph
 from .graph.state import create_initial_state
 from .llm_provider import LLMProvider, LLMProviderError
+from .metrics import MESSAGE_LATENCY, VALIDATIONS
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph  # type: ignore[import-not-found]
@@ -233,6 +235,7 @@ Response:"""
             True if valid, False otherwise
         """
         if not value or value in ("NOT_PROVIDED", "INVALID"):
+            VALIDATIONS.labels(field_type=field.field_type, result="not_provided").inc()
             return False
 
         # Type-specific validation
@@ -245,12 +248,15 @@ Response:"""
 
         validator = validators.get(field.field_type)
         if validator and not validator(value):
+            VALIDATIONS.labels(field_type=field.field_type, result="invalid").inc()
             return False
 
         # Custom validation pattern
         if field.validation_pattern and not self._match_pattern(field.validation_pattern, value):
+            VALIDATIONS.labels(field_type=field.field_type, result="invalid").inc()
             return False
 
+        VALIDATIONS.labels(field_type=field.field_type, result="valid").inc()
         return True
 
     def _validate_email(self, value: str) -> bool:
@@ -351,6 +357,7 @@ Response:"""
         Raises:
             AgentError: If there's an error processing the message
         """
+        start_time = time.perf_counter()
         try:
             # Add user message to state
             state.add_message(MessageRole.USER, user_message)
@@ -377,6 +384,8 @@ Response:"""
             raise AgentError(f"LLM error: {str(e)}") from e
         except Exception as e:
             raise AgentError(f"Error processing message: {str(e)}") from e
+        finally:
+            MESSAGE_LATENCY.observe(time.perf_counter() - start_time)
 
     def process_message_sync(
         self, state: ConversationState, user_message: str
