@@ -21,7 +21,12 @@ from .models import (
     StartConversationResponse,
 )
 
-router = APIRouter(prefix="/conversations", tags=["conversations"])
+# Endpoint constants for metrics labels
+ENDPOINT_CONVERSATIONS = "/conversations"
+ENDPOINT_CONVERSATIONS_ID = "/conversations/{id}"
+ENDPOINT_MESSAGES = "/messages"
+
+router = APIRouter(prefix=ENDPOINT_CONVERSATIONS, tags=["conversations"])
 
 
 @router.post(
@@ -68,10 +73,12 @@ async def start_conversation() -> StartConversationResponse:
         status_code = "500"
         raise
     finally:
-        HTTP_LATENCY.labels(method="POST", endpoint="/conversations").observe(
+        HTTP_LATENCY.labels(method="POST", endpoint=ENDPOINT_CONVERSATIONS).observe(
             time.perf_counter() - start_time
         )
-        HTTP_REQUESTS.labels(method="POST", endpoint="/conversations", status=status_code).inc()
+        HTTP_REQUESTS.labels(
+            method="POST", endpoint=ENDPOINT_CONVERSATIONS, status=status_code
+        ).inc()
 
 
 @router.post(
@@ -141,10 +148,10 @@ async def send_message(session_id: str, request: MessageRequest) -> MessageRespo
         MESSAGES_PROCESSED.labels(status="error").inc()
         raise
     finally:
-        HTTP_LATENCY.labels(method="POST", endpoint="/messages").observe(
+        HTTP_LATENCY.labels(method="POST", endpoint=ENDPOINT_MESSAGES).observe(
             time.perf_counter() - start_time
         )
-        HTTP_REQUESTS.labels(method="POST", endpoint="/messages", status=status_code).inc()
+        HTTP_REQUESTS.labels(method="POST", endpoint=ENDPOINT_MESSAGES, status=status_code).inc()
 
 
 @router.get(
@@ -199,10 +206,12 @@ async def get_conversation(session_id: str) -> ConversationResponse:
         status_code = "500"
         raise
     finally:
-        HTTP_LATENCY.labels(method="GET", endpoint="/conversations/{id}").observe(
+        HTTP_LATENCY.labels(method="GET", endpoint=ENDPOINT_CONVERSATIONS_ID).observe(
             time.perf_counter() - start_time
         )
-        HTTP_REQUESTS.labels(method="GET", endpoint="/conversations/{id}", status=status_code).inc()
+        HTTP_REQUESTS.labels(
+            method="GET", endpoint=ENDPOINT_CONVERSATIONS_ID, status=status_code
+        ).inc()
 
 
 @router.delete(
@@ -254,9 +263,9 @@ async def delete_conversation(session_id: str) -> dict[str, str]:
         status_code = "500"
         raise
     finally:
-        HTTP_LATENCY.labels(method="DELETE", endpoint="/conversations/{id}").observe(
+        HTTP_LATENCY.labels(method="DELETE", endpoint=ENDPOINT_CONVERSATIONS_ID).observe(
             time.perf_counter() - start_time
         )
         HTTP_REQUESTS.labels(
-            method="DELETE", endpoint="/conversations/{id}", status=status_code
+            method="DELETE", endpoint=ENDPOINT_CONVERSATIONS_ID, status=status_code
         ).inc()
