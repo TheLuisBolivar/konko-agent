@@ -10,6 +10,67 @@ Un agente conversacional configurable construido con LangChain, LangGraph y Fast
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](pyproject.toml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+## ⚡ Quick Local Deploy
+
+### Prerequisites
+- Docker & Docker Compose
+- OpenAI API Key
+- (Optional) LangSmith API Key for tracing
+
+### 1. Setup
+
+```bash
+# Clone and enter project
+git clone https://github.com/TheLuisBolivar/konko-agent.git
+cd konko-agent
+
+# Copy and configure environment
+cp .env.example .env
+# Edit .env with your API keys:
+#   OPENAI_API_KEY=sk-proj-...
+#   LANGCHAIN_TRACING_V2=true        # Enable LangSmith
+#   LANGCHAIN_API_KEY=lsv2_pt_...    # Your LangSmith key
+```
+
+### 2. Start Everything
+
+```bash
+make up
+```
+
+This starts: **Agent API** + **Prometheus** + **Grafana**
+
+### 3. Quick Test
+
+```bash
+# Run a test conversation
+make test-flow
+
+# Check metrics
+make metrics
+
+# Check health of all services
+make health
+```
+
+### 4. Platform URLs
+
+| Platform | URL | Credentials |
+|----------|-----|-------------|
+| **API Docs (Swagger)** | http://localhost:8000/docs | - |
+| **Metrics Endpoint** | http://localhost:8000/metrics/ | - |
+| **Prometheus** | http://localhost:9090 | - |
+| **Grafana Dashboard** | http://localhost:3000 | admin / admin |
+| **LangSmith Traces** | https://smith.langchain.com | Your account |
+
+### 5. Stop
+
+```bash
+make down
+```
+
+---
+
 ## 🚀 Características
 
 - ✅ **LangGraph State Machine** para control de flujo conversacional

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Type
 from agent_config import AgentConfig, EscalationPolicy
 from agent_runtime import ConversationState
 
+from ..metrics import ESCALATIONS
 from .base import PolicyHandler
 from .handlers import (
     CompletionPolicyHandler,
@@ -132,6 +133,10 @@ class EscalationEngine:
             )
 
             if result is not None and result.should_escalate:
+                ESCALATIONS.labels(
+                    policy_type=policy.policy_type,
+                    reason=result.reason or "unspecified",
+                ).inc()
                 return result
 
         return None

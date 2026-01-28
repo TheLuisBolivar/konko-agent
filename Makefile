@@ -160,3 +160,68 @@ status: ## Show git status and branch info
 push: ## Push current branch to origin
 	@echo "$(BLUE)Pushing branch...$(NC)"
 	git push origin $$(git branch --show-current)
+
+# ==================== Monitoring & Observability ====================
+
+up: ## Start all services with monitoring (agent + prometheus + grafana)
+	@echo "$(BLUE)Starting all services with monitoring...$(NC)"
+	docker-compose --profile monitoring up -d --build
+	@echo "$(GREEN)✓ Services started!$(NC)"
+	@echo ""
+	@echo "$(BLUE)Available endpoints:$(NC)"
+	@echo "  API:        http://localhost:8000"
+	@echo "  API Docs:   http://localhost:8000/docs"
+	@echo "  Metrics:    http://localhost:8000/metrics/"
+	@echo "  Prometheus: http://localhost:9090"
+	@echo "  Grafana:    http://localhost:3000 (admin/admin)"
+	@echo "  LangSmith:  https://smith.langchain.com"
+
+down: ## Stop all services
+	@echo "$(YELLOW)Stopping all services...$(NC)"
+	docker-compose --profile monitoring down
+	@echo "$(GREEN)✓ Services stopped$(NC)"
+
+restart: ## Restart all services
+	@echo "$(BLUE)Restarting services...$(NC)"
+	docker-compose --profile monitoring restart
+	@echo "$(GREEN)✓ Services restarted$(NC)"
+
+logs: ## Show logs from all services
+	docker-compose --profile monitoring logs -f
+
+logs-agent: ## Show logs from agent only
+	docker logs -f konko-agent
+
+rebuild: ## Full rebuild without cache
+	@echo "$(BLUE)Rebuilding all services (no cache)...$(NC)"
+	docker-compose --profile monitoring down
+	docker-compose --profile monitoring build --no-cache
+	docker-compose --profile monitoring up -d
+	@echo "$(GREEN)✓ Rebuild complete!$(NC)"
+
+metrics: ## Show current metrics
+	@echo "$(BLUE)Current Konko Metrics:$(NC)"
+	@curl -s http://localhost:8000/metrics/ | grep -E "^konko_" | grep -v "bucket\|created" || echo "$(YELLOW)No metrics yet - make some API calls first$(NC)"
+
+health: ## Check health of all services
+	@echo "$(BLUE)Checking service health...$(NC)"
+	@echo -n "Agent:      " && curl -s http://localhost:8000/health | jq -r '.status' || echo "DOWN"
+	@echo -n "Prometheus: " && curl -s http://localhost:9090/-/healthy && echo "UP" || echo "DOWN"
+	@echo -n "Grafana:    " && curl -s http://localhost:3000/api/health | jq -r '.database' || echo "DOWN"
+
+test-flow: ## Run a test conversation flow
+	@echo "$(BLUE)Running test conversation flow...$(NC)"
+	@SESSION=$$(curl -s -X POST http://localhost:8000/conversations | jq -r '.session_id') && \
+	echo "Session: $$SESSION" && \
+	echo "" && \
+	echo "Sending name..." && \
+	curl -s -X POST "http://localhost:8000/conversations/$$SESSION/messages" \
+		-H "Content-Type: application/json" \
+		-d '{"content": "My name is Test User"}' | jq '.response' && \
+	echo "" && \
+	echo "Sending email..." && \
+	curl -s -X POST "http://localhost:8000/conversations/$$SESSION/messages" \
+		-H "Content-Type: application/json" \
+		-d '{"content": "test@example.com"}' | jq '.response' && \
+	echo "" && \
+	echo "$(GREEN)✓ Test flow complete! Check Grafana for metrics.$(NC)"
