@@ -676,6 +676,43 @@ pip install types-PyYAML types-redis
 mypy packages/
 ```
 
+## 🐳 Docker Hub Publishing (CI/CD)
+
+The CI pipeline automatically builds and publishes Docker images to Docker Hub on pushes to `main`.
+
+### Docker Hub Image
+
+```bash
+docker pull theluisbolivar/konko-agent:latest
+```
+
+👉 **[Docker Hub Repository](https://hub.docker.com/r/theluisbolivar/konko-agent)**
+
+### Configure Docker Hub (For Forks)
+
+To enable automatic Docker image publishing in your fork:
+
+1. **Create Docker Hub Access Token**
+   - Go to [Docker Hub](https://hub.docker.com) → Account Settings → Security
+   - Click **New Access Token**
+   - Name: `github-actions`
+   - Permissions: **Read & Write**
+   - Copy the generated token
+
+2. **Add GitHub Secrets**
+   - Go to your GitHub repo → Settings → Secrets and variables → Actions
+   - Add these secrets:
+     | Secret | Value |
+     |--------|-------|
+     | `DOCKERHUB_USERNAME` | Your Docker Hub username |
+     | `DOCKERHUB_TOKEN` | The access token from step 1 |
+
+3. **Push to main**
+   - The CI workflow will automatically build and push the image
+   - Image tags: `latest` and commit SHA
+
+---
+
 ## 📊 Static Code Analysis (SonarCloud)
 
 This project uses **SonarCloud** for free static code analysis.
