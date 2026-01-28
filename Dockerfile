@@ -4,7 +4,7 @@
 # ============================================
 # Stage 1: Builder
 # ============================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ RUN pip install --upgrade pip && \
 # ============================================
 # Stage 2: Production
 # ============================================
-FROM python:3.11-slim as production
+FROM python:3.11-slim AS production
 
 WORKDIR /app
 
@@ -66,7 +66,7 @@ CMD ["python", "main.py"]
 # ============================================
 # Stage 3: Development (optional)
 # ============================================
-FROM production as development
+FROM production AS development
 
 USER root
 
