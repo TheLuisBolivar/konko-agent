@@ -244,19 +244,52 @@ open htmlcov/index.html
 ### Available Commands
 
 ```bash
-make help              # Show all available commands
+# Setup & Verification
+make setup             # Initial setup (venv, deps, git hooks)
 make verify            # Verify setup and dependencies
-make test              # Run unit tests
-make test-cov          # Tests with coverage report (HTML + terminal)
+
+# Testing
+make test              # Run all tests
+make test-unit         # Run unit tests only
+make test-integration  # Run integration tests only
+make test-cov          # Tests with coverage report
+
+# Code Quality
 make format            # Format code (black + isort)
 make lint              # Lint code (ruff + mypy)
 make quality           # ⭐ Run ALL quality checks
 make quality-check     # Check quality without auto-fix (for CI)
 make security          # Run security analysis
-make hooks-run         # Run pre-commit hooks manually
-make hooks-install     # Reinstall git hooks
+
+# Git Hooks
+make hooks-install     # Install pre-commit hooks
+make hooks-run         # Run pre-commit on all files
+make hooks-update      # Update pre-commit hooks
+make hooks-uninstall   # Uninstall pre-commit hooks
+
+# Docker & Monitoring
+make up                # Start all services with monitoring
+make down              # Stop all services
+make restart           # Restart all services
+make rebuild           # Full rebuild without cache
+make logs              # Show logs from all services
+make logs-agent        # Show logs from agent only
+
+# Testing & Monitoring
+make test-flow         # Run a test conversation (REST API)
+make test-ws           # Start WebSocket conversation (interactive)
+make metrics           # Show current Prometheus metrics
+make health            # Check health of all services
+
+# Configuration
+make config-list       # List all configurations
+make config-validate   # Validate all config files
+make config-show       # Show config details
+
+# Utilities
 make clean             # Clean generated files
-make status            # Show git status and recent commits
+make status            # Show git status
+make help              # Show all commands
 ```
 
 ### Automatic Pre-commit Hooks
@@ -362,8 +395,8 @@ konko-agent/
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Tests** | 264/264 passing | ✅ 100% |
-| **Coverage** | >95% | ✅ Excellent |
+| **Tests** | 281/281 passing | ✅ 100% |
+| **Coverage** | 95.93% | ✅ Excellent |
 | **Type Coverage** | 100% (mypy strict) | ✅ Perfect |
 | **Complexity** | <10 per function | ✅ Low |
 | **Security** | 0 vulnerabilities | ✅ Secure |
@@ -744,8 +777,7 @@ Analysis results are publicly available at:
 
 - **Issues**: [GitHub Issues](https://github.com/TheLuisBolivar/konko-agent/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/TheLuisBolivar/konko-agent/discussions)
-- **Email**: luis@konko.ai
-- **Security**: security@konko.ai
+- **Email**: lebolivarc@gmail.com
 
 ## 📄 License
 
